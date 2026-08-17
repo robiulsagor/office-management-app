@@ -4,7 +4,7 @@ import LoginForm from "./login-form"
 const LoginPage = () => {
   return (
    <div className="w-full">
-    <AuthWrapper >
+    <AuthWrapper subText="Log in.">
       <LoginForm />
     </AuthWrapper>
    </div>
