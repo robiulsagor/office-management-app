@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Poppins} from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
 
 const roboto = Poppins({
-  weight:["400", "500"]
-
-})
+  weight: ["400", "500"],
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,15 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={cn(
-        "h-full",
-        "antialiased",
-        roboto.className
-      )}
-    >
-      <body className="min-h-full flex flex-col bg-slate-300">{children}</body>
+    <html lang="en" className={cn("h-full", "antialiased", roboto.className)}>
+      <body>
+       {children}
+      </body>
     </html>
   );
 }
