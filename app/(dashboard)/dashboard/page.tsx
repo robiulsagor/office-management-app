@@ -1,11 +1,9 @@
-import React from 'react'
-
 const Dashboard = () => {
   return (
     <div>
-      Dashboard page
+      Hi, this is dashboard page. You can add your dashboard components here.
     </div>
   )
 }
 
-export default Dashboard  
+export default Dashboard
