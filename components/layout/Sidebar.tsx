@@ -1,6 +1,12 @@
 "use client";
 
-import { Grid2X2, ListOrdered, PanelRightOpen, Users2 } from "lucide-react";
+import {
+  DoorClosed,
+  Grid2X2,
+  ListOrdered,
+  PanelRightOpen,
+  Users2,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,53 +48,64 @@ const Sidebar = () => {
         onClick={() => setShowSidebar((state) => !state)}
       />
 
-<div>
+      <div className="h-[90%] flex flex-col  justify-between">
+        <div className="flex items-center gap-2.5">
+          <Image src="/logo.svg" width={50} height={50} alt="c_logo" />
+          <motion.h2
+            animate={{
+              opacity: showSidebar ? 1 : 0,
+              width: showSidebar ? "auto" : 0,
+              display: showSidebar ? "block" : "none",
+            }}
+            transition={{ duration: 0.2 }}
+            className="text-green-600 font-extrabold text-2xl whitespace-nowrap overflow-hidden"
+          >
+            ACS ERP
+          </motion.h2>
+        </div>
 
-      <div className="flex items-center gap-0">
-</div>
-        <Image
-          src="/logo.svg"
-          className="border"
-          width={50}
-          height={50}
-          alt="c_logo"
-        />
-        <motion.h2
-          animate={{
-            opacity: showSidebar ? 1 : 0,
-            width: showSidebar ? "auto" : 0,
-          }}
-          transition={{ duration: 0.2 }}
-          className="text-green-600 font-extrabold text-2xl whitespace-nowrap overflow-hidden"
-        >
-          ACS ERP
-        </motion.h2>
-      </div>
-
-      <ul className="mt-14 space-y-1">
-        {menuItems.map((item) => (
-          <li key={item.id}>
-            <Link
-              href={item.path}
-              className={`flex  items-end gap-2 p-3 rounded-lg hover:bg-teal-600/10 ${path === item.path && "bg-teal-600/20 hover:bg-teal-600/20"}`}
-            >
-              {item.icon}
-              <motion.span
-                animate={{
-                  opacity: showSidebar ? 1 : 0,
-                  width: showSidebar ? "auto" : 0,
-                }}
-                transition={{ duration: 0.2 }}
+        <ul className="mt-14 space-y-1">
+          {menuItems.map((item) => (
+            <li key={item.id}>
+              <Link
+                href={item.path}
+                className={`flex items-end p-3 rounded-lg hover:bg-teal-600/10 ${path === item.path && "bg-teal-600/20 hover:bg-teal-600/20"}
+              `}
               >
-                {item.label}{" "}
-              </motion.span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+                {item.icon}
+                <motion.span
+                  animate={{
+                    opacity: showSidebar ? 1 : 0,
+                    width: showSidebar ? "auto" : 0,
+                  }}
+                  transition={{ duration: 0.2 }}
+                  className="pl-2"
+                >
+                  {item.label}
+                </motion.span>
+              </Link>
+            </li>
+          ))}
+        </ul>
 
-      <div className="mt-auto bg-amber-500">
-        hello
+        <div className="mt-auto  ">
+          <Link
+            href={path}
+            className="flex gap-2 p-3 hover:underline hover:bg-teal-600/10 rounded-xl"
+          >
+            <DoorClosed />
+            <motion.span
+              animate={{
+                opacity: showSidebar ? 1 : 0,
+                width: showSidebar ? "auto" : 0,
+                display: showSidebar ? "block" : "none",
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              Logout
+            </motion.span>
+          </Link>
+        </div>
       </div>
     </div>
   );
