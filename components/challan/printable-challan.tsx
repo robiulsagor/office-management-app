@@ -125,7 +125,7 @@ const PrintableChallanPage = () => {
                3 Ctns
               </td>
               <td className="border border-black px-4 py-2">150</td>
-              <td className="border border-black px-4 py-2">-</td> 
+              <td className="border border-black px-4 py-2"></td> 
           </tr>
         </tbody>
       </table>
