@@ -4,6 +4,7 @@ import {
   DoorClosed,
   Grid2X2,
   ListOrdered,
+  NotebookPenIcon,
   PanelRightOpen,
   Users2,
 } from "lucide-react";
@@ -44,6 +45,13 @@ const menuItems:MenuTypes[] = [
     path: "/employees",
     label: "Employees",
     icon: Users2 ,
+    roles: ["super_admin", "admin"],
+  },
+  {
+    id: 4,
+    path: "/generate-documents",
+    label: "Documents",
+    icon: NotebookPenIcon,
     roles: ["super_admin", "admin"],
   },
 ];
