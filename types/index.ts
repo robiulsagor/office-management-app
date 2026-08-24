@@ -1,3 +1,5 @@
+import type {LucideIcon} from "lucide-react";
+
 export const NOTIFICATION_TYPE = {
     INFO: "info",
     SUCCESS: "success",
@@ -12,3 +14,11 @@ export const NOTIFICATION_TYPE = {
     BAZAR_REPORT: "bazar_report",
     SYSTEM_MAINTENANCE: "system_maintenance"
   } 
+
+  export type MenuTypes = {
+    id: number,
+    path: string,
+    icon: LucideIcon,
+    label: string,
+    roles: string[]
+  }
