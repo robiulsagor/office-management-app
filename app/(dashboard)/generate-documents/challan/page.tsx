@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+const CHALLAN_DRAFT_KEY = "challan-draft";
+const CHALLAN_PRINT_KEY = "challan-print-data";
+
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, FileText, CalendarDays, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,8 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
-type QuantityType = "pcs" | "yards" | "kgs" | "meters" | "dozens";
+import { ChallanData, QuantityType } from "@/types/challan";
+import { useRouter } from "next/navigation";
 
 type ChallanItem = {
   id: string;
@@ -30,7 +33,7 @@ type ChallanItem = {
 };
 
 const createEmptyItem = (): ChallanItem => ({
-  id: crypto.randomUUID(),
+  id: "initial",
   description: "",
   packageCount: "",
   packageType: "roll",
@@ -49,15 +52,37 @@ const quantityTypes: QuantityType[] = [
 
 const GenerateChallan = () => {
   const [challanNumber, setChallanNumber] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState("");
   const [factoryName, setFactoryName] = useState("");
   const [factoryAddress, setFactoryAddress] = useState("");
 
-  const [items, setItems] = useState<ChallanItem[]>([createEmptyItem()]);
+  // const [items, setItems] = useState<ChallanItem[]>([createEmptyItem()]);
+  const [items, setItems] = useState<ChallanItem[]>([
+  {
+    id: "initial",
+    description: "",
+    packageCount: "",
+    packageType: "roll",
+    quantity: "",
+    quantityType: "",
+    remarks: "",
+  },
+]);
 
   const addItem = () => {
-    setItems((prev) => [...prev, createEmptyItem()]);
-  };
+  setItems((prev) => [
+    ...prev,
+    {
+     id: "initial",
+      description: "",
+      packageCount: "",
+      packageType: "roll",
+      quantity: "",
+      quantityType: "",
+      remarks: "",
+    },
+  ]);
+}
 
   const removeItem = (id: string) => {
     setItems((prev) => {
@@ -119,25 +144,34 @@ const GenerateChallan = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const challanData = {
+    const challanData: ChallanData = {
       challanNumber,
       date,
       factoryName,
       factoryAddress,
-      items,
-      totals: {
-        packages: totalPackages,
-        quantities: quantityTotals,
-      },
+
+      items: items.map((item) => {
+        if (!item.quantityType) {
+          throw new Error("Quantity type is required");
+        }
+
+        return {
+          id: item.id,
+          description: item.description,
+          packageCount: Number(item.packageCount),
+          packageType: item.packageType,
+          quantity: Number(item.quantity),
+          quantityType: item.quantityType,
+          remarks: item.remarks,
+        };
+      }),
     };
 
-    console.log(challanData);
+    sessionStorage.setItem(CHALLAN_PRINT_KEY, JSON.stringify(challanData));
 
-    // Later:
-    // 1. Save challan
-    // 2. Generate printable challan
-    // 3. Generate PDF
+    window.open("/print", "_blank");
   };
+
   return (
     <div className="mx-auto w-full space-y-6 pb-10">
       {/* Page Header */}

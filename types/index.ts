@@ -15,10 +15,20 @@ export const NOTIFICATION_TYPE = {
     SYSTEM_MAINTENANCE: "system_maintenance"
   } 
 
+  // for sidebar menu type
   export type MenuTypes = {
     id: number,
     path: string,
     icon: LucideIcon,
     label: string,
     roles: string[]
+  }
+
+  // for print challan page, data type
+  export type ChallanTypes = {
+    id: number | string;
+    description: string;
+    rollsOrCtns: number | string,
+    quantity: number | string,
+    remarks: string,
   }
