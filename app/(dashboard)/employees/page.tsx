@@ -210,10 +210,6 @@ const Employees = () => {
     );
   };
 
-  // ------------------------------------------------
-  // View Employee
-  // ------------------------------------------------
-
   const handleViewEmployee = (employee: Employee) => {
     setViewingEmployee(employee);
     setViewDialogOpen(true);
