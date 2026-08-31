@@ -31,4 +31,6 @@ export const NOTIFICATION_TYPE = {
     rollsOrCtns: number | string,
     quantity: number | string,
     remarks: string,
-  }
+  } 
+
+ 
