@@ -62,6 +62,13 @@ const menuItems:MenuTypes[] = [
     icon: ShoppingBasket,
     roles: ["super_admin", "admin"],
   },
+  {
+    id: 6,
+    path: "/conveyance",
+    label: "Conveyance",
+    icon: Grid2X2,
+    roles: ["super_admin", "admin", "accounts", "employee"],
+  },
 ];
 
 const Sidebar = () => {
