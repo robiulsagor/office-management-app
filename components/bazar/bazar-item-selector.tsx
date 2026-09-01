@@ -1,402 +1,131 @@
-
 "use client";
 
-import { useMemo, useState } from "react";
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Check, Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-
-type BazarMasterItem = {
-  id: string;
-  nameEn: string;
-  nameBn: string;
-};
-
-// --------------------------------------------------
-// Temporary master item list
-// Later this will come from the database.
-// --------------------------------------------------
-
-const initialBazarItems: BazarMasterItem[] = [
-  {
-    id: "rice",
-    nameEn: "Rice",
-    nameBn: "চাল",
-  },
-  {
-    id: "potato",
-    nameEn: "Potato",
-    nameBn: "আলু",
-  },
-  {
-    id: "onion",
-    nameEn: "Onion",
-    nameBn: "পেঁয়াজ",
-  },
-  {
-    id: "oil",
-    nameEn: "Oil",
-    nameBn: "তেল",
-  },
-  {
-    id: "fish",
-    nameEn: "Fish",
-    nameBn: "মাছ",
-  },
-  {
-    id: "chicken",
-    nameEn: "Chicken",
-    nameBn: "মুরগি",
-  },
-  {
-    id: "vegetables",
-    nameEn: "Vegetables",
-    nameBn: "সবজি",
-  },
-  {
-    id: "tea",
-    nameEn: "Tea",
-    nameBn: "চা",
-  },
-  {
-    id: "sugar",
-    nameEn: "Sugar",
-    nameBn: "চিনি",
-  },
-];
+import { bazarMasterItems } from "./bazar-items";
 
 type BazarItemSelectorProps = {
   value: string;
-  onChange: (itemId: string) => void;
+  onChange: (value: string) => void;
 };
 
 const BazarItemSelector = ({
   value,
   onChange,
 }: BazarItemSelectorProps) => {
-  const [items, setItems] =
-    useState<BazarMasterItem[]>(initialBazarItems);
-
-  const [search, setSearch] = useState("");
-
   const [open, setOpen] = useState(false);
-
-  const [addDialogOpen, setAddDialogOpen] =
-    useState(false);
-
-  const [newNameEn, setNewNameEn] =
-    useState("");
-
-  const [newNameBn, setNewNameBn] =
-    useState("");
-
-  // --------------------------------------------------
-  // Currently selected item
-  // --------------------------------------------------
-
-  const selectedItem = useMemo(() => {
-    return items.find(
-      (item) => item.id === value,
-    );
-  }, [items, value]);
-
-  // --------------------------------------------------
-  // Filter items
-  //
-  // Search works against BOTH English and Bangla.
-  // --------------------------------------------------
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const filteredItems = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const search = value.trim().toLowerCase();
 
-    if (!query) {
-      return items;
+    if (!search) {
+      return bazarMasterItems;
     }
 
-    return items.filter((item) => {
+    return bazarMasterItems.filter((item) => {
       return (
-        item.nameEn.toLowerCase().includes(query) ||
-        item.nameBn.includes(search.trim())
+        item.nameEn.toLowerCase().includes(search) ||
+        item.nameBn.includes(value.trim())
       );
     });
-  }, [items, search]);
+  }, [value]);
 
-  // --------------------------------------------------
-  // Select existing item
-  // --------------------------------------------------
-
-  const handleSelect = (
-    item: BazarMasterItem,
-  ) => {
-    onChange(item.id);
-
-    setSearch("");
+  const handleSelect = (name: string) => {
+    onChange(name);
     setOpen(false);
   };
 
-  // --------------------------------------------------
-  // Open add-new-item dialog
-  // --------------------------------------------------
+  const handleAddNew = () => {
+    const newItem = value.trim();
 
-  const handleOpenAddDialog = () => {
-    // If the user typed something before clicking
-    // "Add new item", use it as the English name
-    // if it contains English characters.
-    setNewNameEn(search.trim());
+    if (!newItem) return;
 
-    setNewNameBn("");
-
-    setAddDialogOpen(true);
-
+    onChange(newItem);
     setOpen(false);
-  };
-
-  // --------------------------------------------------
-  // Add new master item
-  // --------------------------------------------------
-
-  const handleAddNewItem = () => {
-    const nameEn = newNameEn.trim();
-    const nameBn = newNameBn.trim();
-
-    if (!nameEn || !nameBn) {
-      return;
-    }
-
-    // Prevent duplicate English names.
-    const duplicate = items.some(
-      (item) =>
-        item.nameEn.toLowerCase() ===
-        nameEn.toLowerCase(),
-    );
-
-    if (duplicate) {
-      return;
-    }
-
-    const newItem: BazarMasterItem = {
-      id: crypto.randomUUID(),
-      nameEn,
-      nameBn,
-    };
-
-    setItems((prev) => [
-      ...prev,
-      newItem,
-    ]);
-
-    // Immediately select the newly created item.
-    onChange(newItem.id);
-
-    // Reset form.
-    setNewNameEn("");
-    setNewNameBn("");
-
-    setAddDialogOpen(false);
-    setSearch("");
   };
 
   return (
-    <>
-      {/* ================================================= */}
-      {/* Item Selector */}
-      {/* ================================================= */}
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        value={value}
+        placeholder="Search or type item..."
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onBlur={() => {
+          // Small delay so clicking a suggestion works
+          setTimeout(() => setOpen(false), 150);
+        }}
+      />
 
-      <div className="relative space-y-2">
-        <Label>Item</Label>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-md border bg-background shadow-md">
+          {filteredItems.length > 0 ? (
+            <div className="p-1">
+              {filteredItems.map((item) => {
+                const selected =
+                  value === item.nameEn || value === item.nameBn;
 
-        <button
-          type="button"
-          onClick={() => setOpen((prev) => !prev)}
-          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-        >
-          <span
-            className={
-              selectedItem
-                ? "flex items-center gap-2"
-                : "text-muted-foreground"
-            }
-          >
-            {selectedItem ? (
-              <>
-                <span>
-                  {selectedItem.nameEn}
-                </span>
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
+                    onClick={() => handleSelect(item.nameEn)}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {item.nameEn}
+                      </span>
 
-                <span className="text-muted-foreground">
-                  / {selectedItem.nameBn}
-                </span>
-              </>
-            ) : (
-              "Select item"
-            )}
-          </span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.nameBn}
+                      </span>
+                    </div>
 
-          <ChevronDown className="size-4 text-muted-foreground" />
-        </button>
-
-        {/* ================================================= */}
-        {/* Dropdown */}
-        {/* ================================================= */}
-
-        {open && (
-          <div className="absolute left-0 right-0 z-50 mt-1 rounded-md border bg-popover p-2 shadow-md">
-
-            {/* Search */}
-            <Input
-              autoFocus
-              placeholder="Search item / আইটেম খুঁজুন..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              className="mb-2"
-            />
-
-            {/* Results */}
-            <div className="max-h-60 overflow-y-auto">
-
-              {filteredItems.length > 0 ? (
-                <div className="space-y-1">
-                  {filteredItems.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() =>
-                        handleSelect(item)
-                      }
-                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
-                    >
-                      <div>
-                        <div className="font-medium">
-                          {item.nameEn}
-                        </div>
-
-                        <div className="text-xs text-muted-foreground">
-                          {item.nameBn}
-                        </div>
-                      </div>
-
-                      {item.id === value && (
-                        <Check className="size-4" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                  No item found.
-                </div>
-              )}
-
+                    {selected && (
+                      <Check className="size-4 text-teal-600" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
+          ) : (
+            <div className="p-3 text-sm text-muted-foreground">
+              No matching item found.
+            </div>
+          )}
 
-            {/* Add new item */}
-            <div className="mt-2 border-t pt-2">
+          {value.trim() && filteredItems.length === 0 && (
+            <div className="border-t p-1">
               <button
                 type="button"
-                onClick={handleOpenAddDialog}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                }}
+                onClick={handleAddNew}
               >
                 <Plus className="size-4" />
 
-                {search.trim()
-                  ? `Add "${search.trim()}" as new item`
-                  : "Add new item"}
+                <span>
+                  Add &quot;{value.trim()}&quot; as new item
+                </span>
               </button>
             </div>
-
-          </div>
-        )}
-      </div>
-
-      {/* ================================================= */}
-      {/* Add New Item Dialog */}
-      {/* ================================================= */}
-
-      <Dialog
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Add New Bazar Item
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-
-            {/* English */}
-            <div className="space-y-2">
-              <Label htmlFor="item-name-en">
-                English Name
-              </Label>
-
-              <Input
-                id="item-name-en"
-                placeholder="e.g. Tomato"
-                value={newNameEn}
-                onChange={(e) =>
-                  setNewNameEn(e.target.value)
-                }
-              />
-            </div>
-
-            {/* Bangla */}
-            <div className="space-y-2">
-              <Label htmlFor="item-name-bn">
-                বাংলা নাম
-              </Label>
-
-              <Input
-                id="item-name-bn"
-                placeholder="যেমন: টমেটো"
-                value={newNameBn}
-                onChange={(e) =>
-                  setNewNameBn(e.target.value)
-                }
-              />
-            </div>
-
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                setAddDialogOpen(false)
-              }
-            >
-              Cancel
-            </Button>
-
-            <Button
-              type="button"
-              onClick={handleAddNewItem}
-              disabled={
-                !newNameEn.trim() ||
-                !newNameBn.trim()
-              }
-              className="bg-teal-600 hover:bg-teal-700"
-            >
-              Add Item
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
