@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Printer, ReceiptText, Trash2 } from "lucide-react";
+import {  Plus, Printer, ReceiptText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { ConveyanceEmployee, ConveyanceEntry } from "@/types/conveyance";
+import {  ConveyanceEntry } from "@/types/conveyance";
 
 import ConveyanceEmployeeSelector from "./conveyance-employee-selector";
 import ConveyanceTable from "./conveyance-table";
@@ -152,7 +152,7 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
           */}
 
           <ConveyanceMonthSelector month={month} />
-          
+
           <Button type="button" variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 size-4" />
             Print

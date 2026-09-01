@@ -1,9 +1,8 @@
 "use client";
 
-const CHALLAN_DRAFT_KEY = "challan-draft";
 const CHALLAN_PRINT_KEY = "challan-print-data";
 
-import { useEffect, useMemo, useState } from "react";
+import {  useMemo, useState } from "react";
 import { Plus, Trash2, FileText, CalendarDays, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,16 +29,6 @@ type ChallanItem = {
   quantityType: QuantityType | "";
   remarks: string;
 };
-
-const createEmptyItem = (): ChallanItem => ({
-  id: "initial",
-  description: "",
-  packageCount: "",
-  packageType: "roll",
-  quantity: "",
-  quantityType: "",
-  remarks: "",
-});
 
 const quantityTypes: QuantityType[] = [
   "pcs",
@@ -281,7 +270,7 @@ const GenerateChallan = () => {
           <CardContent>
             {/* Desktop item editor */}
             <div className="hidden overflow-x-auto lg:block">
-              <div className="min-w-[850px]">
+              <div className="min-w-212">
                 {/* Table Header */}
                 <div className="grid grid-cols-[40px_2fr_100px_110px_110px_110px_1.5fr_40px] items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <div>#</div>

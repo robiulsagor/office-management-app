@@ -57,7 +57,7 @@ const ConveyancePrintPage = () => {
   });
 
   return (
-    <div className="mx-auto w-[700px] py-10 text-black">
+    <div className="mx-auto w-175 py-10 text-black">
       {/* Company Header */}
       <div className="text-center">
         <h1 className="text-2xl font-bold">
