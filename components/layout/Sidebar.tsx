@@ -69,6 +69,13 @@ const menuItems:MenuTypes[] = [
     icon: Grid2X2,
     roles: ["super_admin", "admin", "accounts", "employee"],
   },
+  {
+    id: 7,
+    path: "/salary",
+    label: "Salary",
+    icon: Grid2X2,
+    roles: ["super_admin", "admin", "accounts"],
+  },
 ];
 
 const Sidebar = () => {
