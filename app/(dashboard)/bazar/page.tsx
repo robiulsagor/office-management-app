@@ -1,12 +1,18 @@
 import BazarPage from "@/components/bazar/bazar-page";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+
+export const metadata: Metadata = {
+  title: "Bazar Data",
+  description: "Show the bazar data",
+};
 
 type PageProps = {
   searchParams: Promise<{
     month?: string;
   }>;
 };
-
 
 const Page = async ({ searchParams }: PageProps) => {
   const params = await searchParams;
