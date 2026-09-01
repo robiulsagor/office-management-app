@@ -20,7 +20,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ChallanData, QuantityType } from "@/types/challan";
-import { useRouter } from "next/navigation";
 
 type ChallanItem = {
   id: string;
@@ -169,7 +168,7 @@ const GenerateChallan = () => {
 
     sessionStorage.setItem(CHALLAN_PRINT_KEY, JSON.stringify(challanData));
 
-    window.open("/print", "_blank");
+    window.open("/print/challan", "_blank");
   };
 
   return (
