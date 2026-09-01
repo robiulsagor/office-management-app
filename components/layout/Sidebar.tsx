@@ -6,6 +6,7 @@ import {
   ListOrdered,
   NotebookPenIcon,
   PanelRightOpen,
+  ShoppingBasket,
   Users2,
 } from "lucide-react";
 import Link from "next/link";
@@ -52,6 +53,13 @@ const menuItems:MenuTypes[] = [
     path: "/generate-documents",
     label: "Documents",
     icon: NotebookPenIcon,
+    roles: ["super_admin", "admin"],
+  },
+  {
+    id: 5,
+    path: "/bazar",
+    label: "Bazar",
+    icon: ShoppingBasket,
     roles: ["super_admin", "admin"],
   },
 ];
