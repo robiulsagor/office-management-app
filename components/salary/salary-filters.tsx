@@ -35,7 +35,7 @@ const SalaryFilters = ({
 }: SalaryFiltersProps) => {
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
-      <div className="relative min-w-[220px]">
+      <div className="relative min-w-55">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
         <Input
@@ -58,7 +58,7 @@ const SalaryFilters = ({
           }
         }}
       >
-        <SelectTrigger className="w-full sm:w-[140px]">
+        <SelectTrigger className="w-full sm:w-35">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
 
@@ -85,7 +85,7 @@ const SalaryFilters = ({
           }
         }}
       >
-        <SelectTrigger className="w-full sm:w-[160px]">
+        <SelectTrigger className="w-full sm:w-40">
           <SelectValue placeholder="Department" />
         </SelectTrigger>
 
