@@ -1,7 +1,15 @@
+"use client";
+
+import { Pencil, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
 import { BazarEntry } from "@/types/bazar";
 
 type BazarDayTableProps = {
   entries: BazarEntry[];
+  onEdit: (entry: BazarEntry) => void;
+  onDelete: (entry: BazarEntry) => void;
 };
 
 const formatCurrency = (amount: number) =>
@@ -19,6 +27,8 @@ const formatDate = (date: string) =>
 
 const BazarDayTable = ({
   entries,
+  onEdit,
+  onDelete,
 }: BazarDayTableProps) => {
   const totalDeposit = entries.reduce(
     (sum, entry) => sum + entry.deposit,
@@ -37,10 +47,11 @@ const BazarDayTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-160">
+      <table className="w-full min-w-225">
 
         <thead>
           <tr className="border-y bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+
             <th className="px-6 py-3">
               Date
             </th>
@@ -56,6 +67,11 @@ const BazarDayTable = ({
             <th className="px-6 py-3 text-right">
               Balance
             </th>
+
+            <th className="px-6 py-3 text-right">
+              Actions
+            </th>
+
           </tr>
         </thead>
 
@@ -72,6 +88,7 @@ const BazarDayTable = ({
                 key={entry.id}
                 className="hover:bg-slate-50/70"
               >
+
                 <td className="px-6 py-4 text-sm font-medium">
                   {formatDate(entry.date)}
                 </td>
@@ -89,6 +106,34 @@ const BazarDayTable = ({
                     entry.deposit - expense,
                   )}
                 </td>
+
+                <td className="px-6 py-4">
+                  <div className="flex justify-end gap-1">
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(entry)}
+                      title="Edit"
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => onDelete(entry)}
+                      title="Delete"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+
+                  </div>
+                </td>
+
               </tr>
             );
           })}
@@ -115,6 +160,8 @@ const BazarDayTable = ({
                 totalDeposit - totalExpense,
               )}
             </td>
+
+            <td />
 
           </tr>
         </tfoot>

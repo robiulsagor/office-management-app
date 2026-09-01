@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,41 +16,78 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { BazarEntry, BazarItem } from "@/types/bazar";
+import {
+  BazarEntry,
+  BazarItem,
+} from "@/types/bazar";
 
 type BazarFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedMonth: Date;
+  editingEntry: BazarEntry | null;
   onSave: (entry: BazarEntry) => void;
 };
+
+const createEmptyItem = (): BazarItem => ({
+  id: crypto.randomUUID(),
+  name: "",
+  price: 0,
+});
 
 const BazarFormDialog = ({
   open,
   onOpenChange,
   selectedMonth,
+  editingEntry,
   onSave,
 }: BazarFormDialogProps) => {
+
   const [date, setDate] = useState("");
   const [deposit, setDeposit] = useState("");
   const [items, setItems] = useState<BazarItem[]>([
-    {
-      id: crypto.randomUUID(),
-      name: "",
-      price: 0,
-    },
+    createEmptyItem(),
   ]);
+
+  const isEditing = Boolean(editingEntry);
+
+
+  // -----------------------------------------------
+  // Populate form when editing
+  // -----------------------------------------------
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (editingEntry) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDate(editingEntry.date);
+      setDeposit(String(editingEntry.deposit));
+
+      setItems(
+        editingEntry.items.map((item) => ({
+          ...item,
+        })),
+      );
+    } else {
+      setDate("");
+      setDeposit("");
+      setItems([createEmptyItem()]);
+    }
+  }, [editingEntry, open]);
+
+
+  // -----------------------------------------------
+  // Items
+  // -----------------------------------------------
 
   const addItem = () => {
     setItems((prev) => [
       ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: "",
-        price: 0,
-      },
+      createEmptyItem(),
     ]);
   };
+
 
   const removeItem = (id: string) => {
     setItems((prev) => {
@@ -61,6 +98,7 @@ const BazarFormDialog = ({
       );
     });
   };
+
 
   const updateItem = (
     id: string,
@@ -82,18 +120,10 @@ const BazarFormDialog = ({
     );
   };
 
-  const resetForm = () => {
-    setDate("");
-    setDeposit("");
 
-    setItems([
-      {
-        id: crypto.randomUUID(),
-        name: "",
-        price: 0,
-      },
-    ]);
-  };
+  // -----------------------------------------------
+  // Submit
+  // -----------------------------------------------
 
   const handleSubmit = (
     e: React.FormEvent,
@@ -102,51 +132,69 @@ const BazarFormDialog = ({
 
     if (!date) return;
 
+    const validItems = items.filter(
+      (item) => item.name.trim(),
+    );
+
     const entry: BazarEntry = {
-      id: crypto.randomUUID(),
+      id:
+        editingEntry?.id ??
+        crypto.randomUUID(),
+
       date,
-      deposit: Number(deposit) || 0,
-      items: items.filter(
-        (item) => item.name.trim(),
-      ),
+
+      deposit:
+        Number(deposit) || 0,
+
+      items: validItems,
     };
 
     onSave(entry);
 
-    resetForm();
     onOpenChange(false);
   };
+
 
   const totalExpense = items.reduce(
     (sum, item) => sum + item.price,
     0,
   );
 
-  const monthName = selectedMonth.toLocaleDateString(
-    "en-US",
-    {
-      month: "long",
-      year: "numeric",
-    },
-  );
+
+  const monthName =
+    selectedMonth.toLocaleDateString(
+      "en-US",
+      {
+        month: "long",
+        year: "numeric",
+      },
+    );
+
 
   return (
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
     >
+
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
 
         <DialogHeader>
+
           <DialogTitle>
-            Add Bazar Entry
+            {isEditing
+              ? "Edit Bazar Entry"
+              : "Add Bazar Entry"}
           </DialogTitle>
 
           <DialogDescription>
-            Add the shopping and deposit information for{" "}
-            {monthName}.
+            {isEditing
+              ? "Correct the bazar information for this day."
+              : `Add the shopping and deposit information for ${monthName}.`}
           </DialogDescription>
+
         </DialogHeader>
+
 
         <form
           onSubmit={handleSubmit}
@@ -171,6 +219,7 @@ const BazarFormDialog = ({
                 }
               />
             </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="bazar-deposit">
@@ -231,6 +280,7 @@ const BazarFormDialog = ({
                 >
 
                   <div className="flex-1 space-y-2">
+
                     <Label>
                       Item {index + 1}
                     </Label>
@@ -246,9 +296,12 @@ const BazarFormDialog = ({
                         )
                       }
                     />
+
                   </div>
 
+
                   <div className="w-32 space-y-2">
+
                     <Label>
                       Price
                     </Label>
@@ -258,7 +311,9 @@ const BazarFormDialog = ({
                       min="0"
                       step="0.01"
                       placeholder="0"
-                      value={item.price || ""}
+                      value={
+                        item.price || ""
+                      }
                       onChange={(e) =>
                         updateItem(
                           item.id,
@@ -267,13 +322,17 @@ const BazarFormDialog = ({
                         )
                       }
                     />
+
                   </div>
+
 
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    disabled={items.length === 1}
+                    disabled={
+                      items.length === 1
+                    }
                     onClick={() =>
                       removeItem(item.id)
                     }
@@ -289,9 +348,10 @@ const BazarFormDialog = ({
           </div>
 
 
-          {/* Total */}
+          {/* Expense */}
 
           <div className="rounded-xl border bg-slate-50 p-4">
+
             <div className="flex items-center justify-between">
 
               <span className="text-sm text-muted-foreground">
@@ -303,6 +363,7 @@ const BazarFormDialog = ({
               </span>
 
             </div>
+
           </div>
 
 
@@ -322,7 +383,9 @@ const BazarFormDialog = ({
               type="submit"
               className="bg-teal-600 hover:bg-teal-700"
             >
-              Add Bazar
+              {isEditing
+                ? "Save Changes"
+                : "Add Bazar"}
             </Button>
 
           </DialogFooter>
@@ -330,6 +393,7 @@ const BazarFormDialog = ({
         </form>
 
       </DialogContent>
+
     </Dialog>
   );
 };
