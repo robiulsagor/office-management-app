@@ -7,6 +7,7 @@ import {
   NotebookPenIcon,
   PanelRightOpen,
   ShoppingBasket,
+  UserCheck,
   Users2,
 } from "lucide-react";
 import Link from "next/link";
@@ -74,6 +75,13 @@ const menuItems:MenuTypes[] = [
     path: "/salary",
     label: "Salary",
     icon: Grid2X2,
+    roles: ["super_admin", "admin", "accounts"],
+  },
+  {
+    id: 8,
+    path: "/user-management",
+    label: "User Management",
+    icon: UserCheck,
     roles: ["super_admin", "admin", "accounts"],
   },
 ];
