@@ -11,3 +11,195 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+  TERMINATED
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  ACCOUNTS
+  EMPLOYEE
+}
+
+enum AccountStatus {
+  ACTIVE
+  FROZEN
+  INACTIVE
+}
+
+model Employee {
+  id               String           @id @default(cuid())
+  employeeCode     String           @unique
+  name             String
+  nameBn           String?
+  designation      String
+  department       String?
+  phone            String?
+  email            String?
+  joiningDate      DateTime
+  employmentStatus EmploymentStatus @default(ACTIVE)
+
+  user User?
+
+  conveyanceRecords ConveyanceRecord[]
+  monthlyConveyance MonthlyConveyance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employmentStatus])
+  @@index([department])
+}
+
+model User {
+  id            String        @id @default(cuid())
+  employeeId    String        @unique
+  username      String        @unique
+  passwordHash  String
+  role          Role          @default(EMPLOYEE)
+  accountStatus AccountStatus @default(ACTIVE)
+  lastLogin     DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  bazarEntries BazarEntry[]
+
+  conveyanceRecords ConveyanceRecord[]
+
+  monthlyConveyanceApprovals MonthlyConveyanceApproval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BazarItem {
+  id       String  @id @default(cuid())
+  nameEn   String
+  nameBn   String
+  isActive Boolean @default(true)
+
+  purchases BazarEntryItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model BazarEntry {
+  id      String   @id @default(cuid())
+  date    DateTime
+  deposit Decimal  @default(0)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  items BazarEntryItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([createdById])
+}
+
+model BazarEntryItem {
+  id String @id @default(cuid())
+
+  bazarEntryId String
+  bazarEntry   BazarEntry @relation(fields: [bazarEntryId], references: [id], onDelete: Cascade)
+
+  bazarItemId String
+  bazarItem   BazarItem @relation(fields: [bazarItemId], references: [id])
+
+  price Decimal
+
+  createdAt DateTime @default(now())
+
+  @@index([bazarEntryId])
+  @@index([bazarItemId])
+}
+
+model ConveyanceRecord {
+  id String @id @default(cuid())
+
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  date DateTime
+  from String
+  to   String
+  bill Decimal
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([date])
+  @@index([createdById])
+}
+
+enum MonthlyConveyanceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVISED
+}
+
+model MonthlyConveyance {
+  id String @id @default(cuid())
+
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  month String
+
+  claimedAmount  Decimal
+  approvedAmount Decimal?
+
+  status MonthlyConveyanceStatus @default(PENDING)
+
+  approvals MonthlyConveyanceApproval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, month])
+  @@index([month])
+  @@index([status])
+}
+
+enum MonthlyConveyanceApprovalAction {
+  APPROVED
+  REJECTED
+  REVISED
+}
+
+model MonthlyConveyanceApproval {
+  id String @id @default(cuid())
+
+  monthlyConveyanceId String
+  monthlyConveyance MonthlyConveyance @relation(fields: [monthlyConveyanceId], references: [id], onDelete: Cascade)
+
+  action MonthlyConveyanceApprovalAction
+  amount Decimal
+
+  note String?
+
+  actedById String
+  actedBy   User   @relation(fields: [actedById], references: [id])
+
+  actedAt DateTime @default(now())
+
+  @@index([monthlyConveyanceId])
+  @@index([actedById])
+  @@index([actedAt])
+}
