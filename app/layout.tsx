@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
+
+import { Toaster } from 'react-hot-toast';
 
 const roboto = Poppins({
   weight: ["400", "500"],
@@ -22,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("h-full", "antialiased", roboto.className)}>
       <body>
+        <div><Toaster/></div>
        {children}
       </body>
     </html>
