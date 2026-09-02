@@ -8,6 +8,8 @@ import { SetupFormValues, setupSchema } from "./setup-schema";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { setupAdmin } from "@/actions/setup/setup-action";
+import toast from "react-hot-toast";
 
 const SetupForm = () => {
   const {
@@ -18,8 +20,19 @@ const SetupForm = () => {
     resolver: zodResolver(setupSchema),
   });
 
-  const onSubmit = (data: SetupFormValues) => {
+  const onSubmit = async (data: SetupFormValues) => {
     console.log("Setup submitted:", data);
+    const result = await setupAdmin(data);
+
+    if (!result.success) {
+      console.error(result.message);
+      toast.error(result.message);
+
+      return;
+    }
+
+    console.log(result.message);
+    toast.success(result.message);
   };
 
   return (
