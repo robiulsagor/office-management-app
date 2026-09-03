@@ -8,20 +8,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { signIn } from "next-auth/react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
+  const router = useRouter();
 
-  const onSubmit = (data: LoginFormValues) => {
-    console.log("Form submitted:", data);
+  const onSubmit = async (data: LoginFormValues) => {
+    const result = await signIn("credentials", {
+      username: data.username,
+      password: data.password,
+      redirect: false,
+    });
+    console.log(result);
+
+    if (result?.error) {
+      setError("root", {
+        type: "manual",
+        message: "Invalid username or password",
+      });
+      console.log("Login failed:", result.error);
+      return;
+    }
+    toast.success("Login successful!");
+    router.push("/dashboard");
   };
+
   console.log(errors);
+
   return (
     <div className="px-4 md:px-10">
       <p className="text-lg text-slate-500 font-bold">
@@ -83,12 +106,15 @@ const LoginForm = () => {
             </p>
           )}
         </div>
+        {errors.root && (
+          <p className="text-red-500 text-sm mt-1">{errors.root.message}</p>
+        )}
         <Button
           type="submit"
           size={"sm"}
-          className="bg-teal-700 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300 cursor-pointer"
+          className={`bg-teal-700 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300 cursor-pointer ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          Sign In
+          {isSubmitting ? "Signing in..." : "Sign In"}
         </Button>
       </form>
     </div>

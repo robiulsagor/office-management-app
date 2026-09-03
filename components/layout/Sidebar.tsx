@@ -1,4 +1,5 @@
 "use client";
+import { signOut } from "next-auth/react";
 
 import {
   DoorClosed,
@@ -97,6 +98,12 @@ const Sidebar = () => {
 // ); 
 // will implement role based access control later
 
+const handleLogout = async () => {
+  await signOut({
+    callbackUrl: "/login",
+  });
+};
+
   return (
     <div>
       <Sheet open={isMobileNavOpen} onOpenChange={closeMobileNav}>
@@ -152,16 +159,17 @@ const Sidebar = () => {
               className="flex gap-2 p-3 hover:underline hover:bg-teal-600/10 rounded-xl"
             >
               <DoorClosed />
-              <motion.span
-                animate={{
-                  opacity: showSidebar ? 1 : 0,
-                  width: showSidebar ? "auto" : 0,
-                  display: showSidebar ? "block" : "none",
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                Logout
-              </motion.span>
+             <motion.span
+                   animate={{
+                     opacity: showSidebar ? 1 : 0,
+                     width: showSidebar ? "auto" : 0,
+                     display: showSidebar ? "block" : "none",
+                   }}
+                   transition={{ duration: 0.2 }}
+                   onClick={handleLogout}
+                 >
+                   Logout
+                 </motion.span>
             </Link>
           </div>
         </div>

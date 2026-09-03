@@ -3,6 +3,7 @@ import React from "react";
 
 const sekuya = Sekuya({
   weight: "400",
+  fallback: ["sans-serif"],
 });
 
 const AuthWrapper = ({

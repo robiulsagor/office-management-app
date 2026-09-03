@@ -29,6 +29,7 @@ export async function setupAdmin(data: unknown) {
     return {
       success: false,
       message: "Setup has already been completed.",
+      user: existingAdmin,
     };
   }
 

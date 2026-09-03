@@ -8,7 +8,7 @@ import { SetupFormValues, setupSchema } from "./setup-schema";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { setupAdmin } from "@/actions/setup/setup-action";
+import { setupAdmin } from "@/actions/auth/setup";
 import toast from "react-hot-toast";
 
 const SetupForm = () => {
