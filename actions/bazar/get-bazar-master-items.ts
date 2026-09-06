@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-export async function getBazarItems() {
+export async function getBazarMasterItems() {
   try {
     const items = await prisma.bazarItem.findMany({
       where: {

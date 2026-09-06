@@ -19,9 +19,9 @@ import {
 import { BazarEntry, BazarItem } from "@/types/bazar";
 
 import BazarItemSelector from "./bazar-item-selector";
-import { getBazarItems } from "@/actions/bazar/get-bazar-items";
 import { createBazarItem } from "@/actions/bazar/create-bazar-item";
 import { createBazar } from "@/actions/bazar/create-bazar";
+import { getBazarMasterItems } from "@/actions/bazar/get-bazar-master-items";
 
 type BazarFormDialogProps = {
   open: boolean;
@@ -64,7 +64,7 @@ const BazarFormDialog = ({
     if (!open) return;
 
     const loadBazarItems = async () => {
-      const result = await getBazarItems();
+      const result = await getBazarMasterItems();
 
       if (result.success) {
         setBazarMasterItems(result.data);

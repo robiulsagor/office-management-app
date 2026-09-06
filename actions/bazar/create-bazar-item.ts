@@ -7,7 +7,7 @@ type CreateBazarItemData = {
   nameBn?: string;
 };
 
-// create a new bazar item in the database
+// this file create a new bazar item in the database
 
 export async function createBazarItem(data: CreateBazarItemData) {
   try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Printer, Plus, ShoppingBasket } from "lucide-react";
 
@@ -16,6 +16,7 @@ import BazarFilters from "./bazar-filters";
 import BazarDayTable from "./bazar-day-table";
 import BazarItemTable from "./bazar-item-table";
 import BazarFormDialog from "./bazar-form-dialog";
+import { getBazarEntries } from "@/actions/bazar/get-bazar-entries";
 
 type BazarPageProps = {
   month: string;
@@ -25,81 +26,6 @@ type BazarPageProps = {
 // Mock data
 // --------------------------------------------------
 
-const initialBazarData: BazarEntry[] = [
-  {
-    id: "1",
-    date: "2026-09-01",
-    deposit: 1000,
-    items: [
-      {
-        id: "1-1",
-        name: "Rice",
-        price: 250,
-      },
-      {
-        id: "1-2",
-        name: "Vegetables",
-        price: 180,
-      },
-      {
-        id: "1-3",
-        name: "Oil",
-        price: 220,
-      },
-    ],
-  },
-  {
-    id: "2",
-    date: "2026-09-02",
-    deposit: 800,
-    items: [
-      {
-        id: "2-1",
-        name: "Fish",
-        price: 350,
-      },
-      {
-        id: "2-2",
-        name: "Potato",
-        price: 100,
-      },
-    ],
-  },
-  {
-    id: "3",
-    date: "2026-09-03",
-    deposit: 1000,
-    items: [
-      {
-        id: "3-1",
-        name: "Chicken",
-        price: 420,
-      },
-      {
-        id: "3-2",
-        name: "Onion",
-        price: 100,
-      },
-    ],
-  },
-  {
-    id: "4",
-    date: "2026-09-05",
-    deposit: 500,
-    items: [
-      {
-        id: "4-1",
-        name: "Tea",
-        price: 180,
-      },
-      {
-        id: "4-2",
-        name: "Sugar",
-        price: 100,
-      },
-    ],
-  },
-];
 
 const BazarPage = ({ month }: BazarPageProps) => {
   // ------------------------------------------------
@@ -110,11 +36,26 @@ const BazarPage = ({ month }: BazarPageProps) => {
 
   const [selectedItem, setSelectedItem] = useState("");
 
-  const [entries, setEntries] = useState<BazarEntry[]>(initialBazarData);
+const [entries, setEntries] = useState<BazarEntry[]>([]);
 
   const [formOpen, setFormOpen] = useState(false);
 
   const [editingEntry, setEditingEntry] = useState<BazarEntry | null>(null);
+
+  useEffect(() => {
+  const loadBazarEntries = async () => {
+    const result = await getBazarEntries(month);
+
+    if (!result.success) {
+      console.error(result.message);
+      return;
+    }
+
+    setEntries(result.data);
+  };
+
+  loadBazarEntries();
+}, [month]);
 
   // ------------------------------------------------
   // Convert URL month to Date

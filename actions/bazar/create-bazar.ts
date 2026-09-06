@@ -1,5 +1,7 @@
 "use server";
 
+// this file create a new bazar entry in the database
+
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
