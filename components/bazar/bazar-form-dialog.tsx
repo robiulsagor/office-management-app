@@ -19,6 +19,7 @@ import {
 import { BazarEntry, BazarItem } from "@/types/bazar";
 
 import BazarItemSelector from "./bazar-item-selector";
+import { getBazarItems } from "@/actions/bazar/get-bazar-items";
 
 type BazarFormDialogProps = {
   open: boolean;
@@ -47,6 +48,28 @@ const BazarFormDialog = ({
   const [deposit, setDeposit] = useState("");
   const [items, setItems] = useState<BazarItem[]>([createEmptyItem()]);
   const [error, setError] = useState("");
+
+  const [bazarMasterItems, setBazarMasterItems] = useState<
+    {
+      id: string;
+      nameEn: string;
+      nameBn: string;
+    }[]
+  >([]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const loadBazarItems = async () => {
+      const result = await getBazarItems();
+
+      if (result.success) {
+        setBazarMasterItems(result.data);
+      }
+    };
+
+    loadBazarItems();
+  }, [open]);
 
   const isEditing = Boolean(editingEntry);
 
@@ -263,6 +286,7 @@ const BazarFormDialog = ({
                     </Label>
 
                     <BazarItemSelector
+                      items={bazarMasterItems}
                       value={item.name}
                       onChange={(value) => updateItem(item.id, "name", value)}
                     />

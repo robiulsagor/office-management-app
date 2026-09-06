@@ -1,49 +1,49 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, Plus } from "lucide-react";
+
+import { Check } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { bazarMasterItems } from "./bazar-items";
+
+type BazarMasterItem = {
+  id: string;
+  nameEn: string;
+  nameBn: string;
+};
 
 type BazarItemSelectorProps = {
+  items: BazarMasterItem[];
   value: string;
   onChange: (value: string) => void;
 };
 
 const BazarItemSelector = ({
+  items,
   value,
   onChange,
 }: BazarItemSelectorProps) => {
   const [open, setOpen] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filteredItems = useMemo(() => {
     const search = value.trim().toLowerCase();
 
     if (!search) {
-      return bazarMasterItems;
+      return items;
     }
 
-    return bazarMasterItems.filter((item) => {
+    return items.filter((item) => {
       return (
         item.nameEn.toLowerCase().includes(search) ||
         item.nameBn.includes(value.trim())
       );
     });
-  }, [value]);
+  }, [items, value]);
 
   const handleSelect = (name: string) => {
     onChange(name);
-    setOpen(false);
-  };
-
-  const handleAddNew = () => {
-    const newItem = value.trim();
-
-    if (!newItem) return;
-
-    onChange(newItem);
     setOpen(false);
   };
 
@@ -54,13 +54,12 @@ const BazarItemSelector = ({
         value={value}
         placeholder="Search or type item..."
         onFocus={() => setOpen(true)}
-         className="text-sm md:text-base"
+        className="text-sm md:text-base"
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);
         }}
         onBlur={() => {
-          // Small delay so clicking a suggestion works
           setTimeout(() => setOpen(false), 150);
         }}
       />
@@ -103,25 +102,6 @@ const BazarItemSelector = ({
           ) : (
             <div className="p-3 text-sm text-muted-foreground">
               No matching item found.
-            </div>
-          )}
-
-          {value.trim() && filteredItems.length === 0 && (
-            <div className="border-t p-1">
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                }}
-                onClick={handleAddNew}
-              >
-                <Plus className="size-4" />
-
-                <span>
-                  Add &quot;{value.trim()}&quot; as new item
-                </span>
-              </button>
             </div>
           )}
         </div>
