@@ -46,6 +46,7 @@ const BazarFormDialog = ({
   const [date, setDate] = useState("");
   const [deposit, setDeposit] = useState("");
   const [items, setItems] = useState<BazarItem[]>([createEmptyItem()]);
+  const [error, setError] = useState("");
 
   const isEditing = Boolean(editingEntry);
 
@@ -60,13 +61,14 @@ const BazarFormDialog = ({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDate(editingEntry.date);
       setDeposit(String(editingEntry.deposit));
-
+      setError("");
       setItems(
         editingEntry.items.map((item) => ({
           ...item,
         })),
       );
     } else {
+      setError("");
       setDate("");
       setDeposit("");
       setItems([createEmptyItem()]);
@@ -118,22 +120,48 @@ const BazarFormDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date) return;
+    setError("");
+
+    if (!date) {
+      setError("Please select a date.");
+      return;
+    }
 
     const validItems = items.filter((item) => item.name.trim());
 
+    if (validItems.length === 0) {
+      setError("Please add at least one purchased item.");
+      return;
+    }
+
+    for (const item of validItems) {
+      const hasQuantity = item.quantity != null;
+      const hasUnit = Boolean(item.unit);
+
+      if (hasQuantity !== hasUnit) {
+        setError(`Please provide both quantity and unit for "${item.name}".`);
+        return;
+      }
+
+      if (item.quantity != null && item.quantity <= 0) {
+        setError(`Quantity for "${item.name}" must be greater than 0.`);
+        return;
+      }
+
+      if (item.price < 0) {
+        setError(`Price for "${item.name}" cannot be negative.`);
+        return;
+      }
+    }
+
     const entry: BazarEntry = {
       id: editingEntry?.id ?? crypto.randomUUID(),
-
       date,
-
       deposit: Number(deposit) || 0,
-
       items: validItems,
     };
 
     onSave(entry);
-
     onOpenChange(false);
   };
 
@@ -160,6 +188,12 @@ const BazarFormDialog = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           {/* Date + Deposit */}
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -176,7 +210,9 @@ const BazarFormDialog = ({
             </div>
 
             <div className="space-y-2 text-xs sm:text-sm md:text-base">
-              <Label htmlFor="bazar-deposit" className="text-sm md:text-base">Deposit</Label>
+              <Label htmlFor="bazar-deposit" className="text-sm md:text-base">
+                Deposit
+              </Label>
 
               <Input
                 id="bazar-deposit"
@@ -222,7 +258,9 @@ const BazarFormDialog = ({
                 >
                   {/* Item */}
                   <div className=" min-w-0 space-y-2 sm:flex-1">
-                    <Label className="text-sm md:text-base">Item {index + 1}</Label>
+                    <Label className="text-sm md:text-base">
+                      Item {index + 1}
+                    </Label>
 
                     <BazarItemSelector
                       value={item.name}
