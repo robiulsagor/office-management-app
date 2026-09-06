@@ -7,6 +7,8 @@ type CreateBazarItemData = {
   nameBn?: string;
 };
 
+// create a new bazar item in the database
+
 export async function createBazarItem(data: CreateBazarItemData) {
   try {
     const nameEn = data.nameEn.trim();

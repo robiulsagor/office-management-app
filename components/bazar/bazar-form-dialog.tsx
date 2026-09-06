@@ -20,6 +20,7 @@ import { BazarEntry, BazarItem } from "@/types/bazar";
 
 import BazarItemSelector from "./bazar-item-selector";
 import { getBazarItems } from "@/actions/bazar/get-bazar-items";
+import { createBazarItem } from "@/actions/bazar/create-bazar-item";
 
 type BazarFormDialogProps = {
   open: boolean;
@@ -70,6 +71,40 @@ const BazarFormDialog = ({
 
     loadBazarItems();
   }, [open]);
+
+ const handleAddNewItem = async (
+  itemId: string,
+  nameEn: string,
+  nameBn: string,
+) => {
+  const result = await createBazarItem({
+    nameEn,
+    nameBn,
+  });
+
+  if (!result.success || !result.data) {
+    setError(
+      result.message || "Failed to add new item.",
+    );
+    return;
+  }
+
+  setBazarMasterItems((prev) => {
+    const exists = prev.some(
+      (item) => item.id === result.data!.id,
+    );
+
+    if (exists) {
+      return prev;
+    }
+
+    return [...prev, result.data!].sort((a, b) =>
+      a.nameEn.localeCompare(b.nameEn),
+    );
+  });
+
+  updateItem(itemId, "name", result.data.nameEn);
+};
 
   const isEditing = Boolean(editingEntry);
 
@@ -285,11 +320,20 @@ const BazarFormDialog = ({
                       Item {index + 1}
                     </Label>
 
-                    <BazarItemSelector
-                      items={bazarMasterItems}
-                      value={item.name}
-                      onChange={(value) => updateItem(item.id, "name", value)}
-                    />
+                   <BazarItemSelector
+  items={bazarMasterItems}
+  value={item.name}
+  onChange={(value) =>
+    updateItem(item.id, "name", value)
+  }
+  onAddNew={(nameEn, nameBn) =>
+    handleAddNewItem(
+      item.id,
+      nameEn,
+      nameBn,
+    )
+  }
+/>
                   </div>
 
                   {/* Quantity */}
