@@ -77,6 +77,14 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+enum BazarUnit {
+  KG
+  GRAM
+  LITER
+  ML
+  PCS
+}
+
 model BazarItem {
   id       String  @id @default(cuid())
   nameEn   String
@@ -116,6 +124,9 @@ model BazarEntryItem {
 
   bazarItemId String
   bazarItem   BazarItem @relation(fields: [bazarItemId], references: [id])
+
+  quantity Decimal?
+  unit     BazarUnit?
 
   price Decimal
 
@@ -187,7 +198,7 @@ model MonthlyConveyanceApproval {
   id String @id @default(cuid())
 
   monthlyConveyanceId String
-  monthlyConveyance MonthlyConveyance @relation(fields: [monthlyConveyanceId], references: [id], onDelete: Cascade)
+  monthlyConveyance   MonthlyConveyance @relation(fields: [monthlyConveyanceId], references: [id], onDelete: Cascade)
 
   action MonthlyConveyanceApprovalAction
   amount Decimal

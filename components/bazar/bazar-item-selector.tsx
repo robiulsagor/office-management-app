@@ -54,6 +54,7 @@ const BazarItemSelector = ({
         value={value}
         placeholder="Search or type item..."
         onFocus={() => setOpen(true)}
+         className="text-sm md:text-base"
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);

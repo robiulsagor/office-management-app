@@ -31,6 +31,8 @@ type BazarFormDialogProps = {
 const createEmptyItem = (): BazarItem => ({
   id: crypto.randomUUID(),
   name: "",
+  quantity: undefined,
+  unit: undefined,
   price: 0,
 });
 
@@ -87,13 +89,22 @@ const BazarFormDialog = ({
     });
   };
 
-  const updateItem = (id: string, field: "name" | "price", value: string) => {
+  const updateItem = (
+    id: string,
+    field: "name" | "quantity" | "unit" | "price",
+    value: string,
+  ) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === id
           ? {
               ...item,
-              [field]: field === "price" ? Number(value) || 0 : value,
+              [field]:
+                field === "price" || field === "quantity"
+                  ? value === ""
+                    ? undefined
+                    : Number(value)
+                  : value,
             }
           : item,
       ),
@@ -135,7 +146,7 @@ const BazarFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Edit Bazar Entry" : "Add Bazar Entry"}
@@ -159,12 +170,13 @@ const BazarFormDialog = ({
                 id="bazar-date"
                 type="date"
                 value={date}
+                className="text-sm md:text-base"
                 onChange={(e) => setDate(e.target.value)}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bazar-deposit">Deposit</Label>
+            <div className="space-y-2 text-xs sm:text-sm md:text-base">
+              <Label htmlFor="bazar-deposit" className="text-sm md:text-base">Deposit</Label>
 
               <Input
                 id="bazar-deposit"
@@ -173,6 +185,7 @@ const BazarFormDialog = ({
                 step="0.01"
                 placeholder="0"
                 value={deposit}
+                className="text-sm md:text-base"
                 onChange={(e) => setDeposit(e.target.value)}
               />
             </div>
@@ -203,31 +216,63 @@ const BazarFormDialog = ({
 
             <div className="space-y-3">
               {items.map((item, index) => (
-                <div key={item.id} className="flex items-end gap-3">
-                  <div className="flex-1 space-y-2">
-                    <Label>Item {index + 1}</Label>
+                <div
+                  key={item.id}
+                  className="grid grid-cols-2 gap-3 sm:flex sm:items-end"
+                >
+                  {/* Item */}
+                  <div className=" min-w-0 space-y-2 sm:flex-1">
+                    <Label className="text-sm md:text-base">Item {index + 1}</Label>
 
-                    {/* <Input
-                      placeholder="e.g. Rice"
-                      value={item.name}
-                      onChange={(e) =>
-                        updateItem(
-                          item.id,
-                          "name",
-                          e.target.value,
-                        )
-                      }
-                    /> */}
                     <BazarItemSelector
                       value={item.name}
                       onChange={(value) => updateItem(item.id, "name", value)}
                     />
                   </div>
 
-                  <div className="w-32 space-y-2">
-                    <Label>Price</Label>
+                  {/* Quantity */}
+                  <div className="space-y-2 sm:w-20">
+                    <Label className="text-sm md:text-base">Quantity</Label>
 
                     <Input
+                      type="number"
+                      className="text-sm md:text-base"
+                      min="0"
+                      step="0.01"
+                      placeholder="—"
+                      value={item.quantity ?? ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "quantity", e.target.value)
+                      }
+                    />
+                  </div>
+
+                  {/* Unit */}
+                  <div className="space-y-2 sm:w-28">
+                    <Label className="text-sm md:text-base">Unit</Label>
+
+                    <select
+                      className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                      value={item.unit ?? ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "unit", e.target.value)
+                      }
+                    >
+                      <option value="">—</option>
+                      <option value="KG">KG</option>
+                      <option value="GRAM">Gram</option>
+                      <option value="LITER">Liter</option>
+                      <option value="ML">ML</option>
+                      <option value="PCS">Pcs</option>
+                    </select>
+                  </div>
+
+                  {/* Price */}
+                  <div className="space-y-2 sm:w-32">
+                    <Label className="text-sm md:text-base">Price</Label>
+
+                    <Input
+                      className="text-sm md:text-base"
                       type="number"
                       min="0"
                       step="0.01"
@@ -239,12 +284,14 @@ const BazarFormDialog = ({
                     />
                   </div>
 
+                  {/* Delete */}
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     disabled={items.length === 1}
                     onClick={() => removeItem(item.id)}
+                    className="col-span-2 justify-self-end sm:mb-0"
                   >
                     <Trash2 className="size-4 text-muted-foreground" />
                   </Button>
