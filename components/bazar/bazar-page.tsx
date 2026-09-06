@@ -171,12 +171,9 @@ const BazarPage = ({ month }: BazarPageProps) => {
       return monthlyEntries;
     }
 
-    return monthlyEntries
-      .map((entry) => ({
-        ...entry,
-        items: entry.items.filter((item) => item.name === selectedItem),
-      }))
-      .filter((entry) => entry.items.length > 0);
+    return monthlyEntries.filter((entry) =>
+      entry.items.some((item) => item.name === selectedItem),
+    );
   }, [monthlyEntries, selectedItem]);
 
   // ------------------------------------------------
@@ -345,7 +342,10 @@ const BazarPage = ({ month }: BazarPageProps) => {
               onDelete={handleDeleteEntry}
             />
           ) : (
-            <BazarItemTable entries={filteredEntries} />
+            <BazarItemTable
+              entries={filteredEntries}
+              selectedItem={selectedItem}
+            />
           )}
         </CardContent>
       </Card>
