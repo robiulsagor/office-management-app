@@ -26,16 +26,15 @@ type BazarItemSelectorProps = {
   items: BazarMasterItem[];
   value: string;
   onChange: (value: string) => void;
-  onAddNew: (
-    nameEn: string,
-    nameBn: string,
-  ) => Promise<void>;
+  onSelect: (item: BazarMasterItem) => void;
+  onAddNew: (nameEn: string, nameBn: string) => Promise<BazarMasterItem | null>;
 };
 
 const BazarItemSelector = ({
   items,
   value,
   onChange,
+  onSelect,
   onAddNew,
 }: BazarItemSelectorProps) => {
   const [open, setOpen] = useState(false);
@@ -62,11 +61,10 @@ const BazarItemSelector = ({
     });
   }, [items, value]);
 
-  const handleSelect = (name: string) => {
-    onChange(name);
+  const handleSelect = (item: BazarMasterItem) => {
+    onSelect(item);
     setOpen(false);
   };
-
   const handleOpenAddDialog = () => {
     const name = value.trim();
 
@@ -78,26 +76,28 @@ const BazarItemSelector = ({
     setAddDialogOpen(true);
   };
 
-  const handleCreateItem = async () => {
-    const nameEn = newNameEn.trim();
-    const nameBn = newNameBn.trim();
+const handleCreateItem = async () => {
+  const nameEn = newNameEn.trim();
+  const nameBn = newNameBn.trim();
 
-    if (!nameEn) return;
+  if (!nameEn) return;
 
-    try {
-      setAdding(true);
+  try {
+    setAdding(true);
 
-      await onAddNew(nameEn, nameBn);
+    const createdItem = await onAddNew(nameEn, nameBn);
 
-      onChange(nameEn);
+    if (!createdItem) return;
 
-      setAddDialogOpen(false);
-      setNewNameEn("");
-      setNewNameBn("");
-    } finally {
-      setAdding(false);
-    }
-  };
+    onSelect(createdItem);
+
+    setAddDialogOpen(false);
+    setNewNameEn("");
+    setNewNameBn("");
+  } finally {
+    setAdding(false);
+  }
+};
 
   return (
     <>
@@ -123,8 +123,7 @@ const BazarItemSelector = ({
               <div className="p-1">
                 {filteredItems.map((item) => {
                   const selected =
-                    value === item.nameEn ||
-                    value === item.nameBn;
+                    value === item.nameEn || value === item.nameBn;
 
                   return (
                     <button
@@ -134,23 +133,17 @@ const BazarItemSelector = ({
                       onMouseDown={(e) => {
                         e.preventDefault();
                       }}
-                      onClick={() =>
-                        handleSelect(item.nameEn)
-                      }
+                      onClick={() => handleSelect(item)}
                     >
                       <div className="flex flex-col">
-                        <span className="font-medium">
-                          {item.nameEn}
-                        </span>
+                        <span className="font-medium">{item.nameEn}</span>
 
                         <span className="text-xs text-muted-foreground">
                           {item.nameBn}
                         </span>
                       </div>
 
-                      {selected && (
-                        <Check className="size-4 text-teal-600" />
-                      )}
+                      {selected && <Check className="size-4 text-teal-600" />}
                     </button>
                   );
                 })}
@@ -163,74 +156,57 @@ const BazarItemSelector = ({
               </div>
             )}
 
-            {value.trim() &&
-              filteredItems.length === 0 && (
-                <div className="border-t p-1">
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                    }}
-                    onClick={handleOpenAddDialog}
-                  >
-                    <Plus className="size-4" />
+            {value.trim() && filteredItems.length === 0 && (
+              <div className="border-t p-1">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                  }}
+                  onClick={handleOpenAddDialog}
+                >
+                  <Plus className="size-4" />
 
-                    <span>
-                      Add &quot;{value.trim()}&quot; as new item
-                    </span>
-                  </button>
-                </div>
-              )}
+                  <span>Add &quot;{value.trim()}&quot; as new item</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Add New Item Dialog */}
-      <Dialog
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-      >
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              Add New Bazar Item
-            </DialogTitle>
+            <DialogTitle>Add New Bazar Item</DialogTitle>
 
             <DialogDescription>
-              Add the English and Bangla names for this
-              item.
+              Add the English and Bangla names for this item.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-item-name-en">
-                English Name
-              </Label>
+              <Label htmlFor="new-item-name-en">English Name</Label>
 
               <Input
                 id="new-item-name-en"
                 value={newNameEn}
-                onChange={(e) =>
-                  setNewNameEn(e.target.value)
-                }
+                onChange={(e) => setNewNameEn(e.target.value)}
                 placeholder="e.g. Cucumber"
                 autoFocus
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="new-item-name-bn">
-                বাংলা নাম
-              </Label>
+              <Label htmlFor="new-item-name-bn">বাংলা নাম</Label>
 
               <Input
                 id="new-item-name-bn"
                 value={newNameBn}
-                onChange={(e) =>
-                  setNewNameBn(e.target.value)
-                }
+                onChange={(e) => setNewNameBn(e.target.value)}
                 placeholder="যেমন: শসা"
               />
             </div>
@@ -240,9 +216,7 @@ const BazarItemSelector = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                setAddDialogOpen(false)
-              }
+              onClick={() => setAddDialogOpen(false)}
               disabled={adding}
             >
               Cancel

@@ -41,7 +41,7 @@ export async function createBazar(data: CreateBazarData) {
       };
     }
 
-    const entry = await prisma.bazarEntry.create({
+    await prisma.bazarEntry.create({
       data: {
         date: new Date(`${data.date}T12:00:00`),
         deposit: data.deposit,
@@ -70,7 +70,6 @@ export async function createBazar(data: CreateBazarData) {
     return {
       success: true,
       message: "Bazar entry created successfully.",
-      data: entry,
     };
   } catch (error) {
     console.error("Create bazar error:", error);

@@ -21,6 +21,7 @@ import { BazarEntry, BazarItem } from "@/types/bazar";
 import BazarItemSelector from "./bazar-item-selector";
 import { getBazarItems } from "@/actions/bazar/get-bazar-items";
 import { createBazarItem } from "@/actions/bazar/create-bazar-item";
+import { createBazar } from "@/actions/bazar/create-bazar";
 
 type BazarFormDialogProps = {
   open: boolean;
@@ -32,6 +33,7 @@ type BazarFormDialogProps = {
 
 const createEmptyItem = (): BazarItem => ({
   id: crypto.randomUUID(),
+  bazarItemId: "",
   name: "",
   quantity: undefined,
   unit: undefined,
@@ -72,39 +74,29 @@ const BazarFormDialog = ({
     loadBazarItems();
   }, [open]);
 
- const handleAddNewItem = async (
-  itemId: string,
-  nameEn: string,
-  nameBn: string,
-) => {
-  const result = await createBazarItem({
-    nameEn,
-    nameBn,
-  });
+  const handleAddNewItem = async (nameEn: string, nameBn: string) => {
+    const result = await createBazarItem({
+      nameEn,
+      nameBn,
+    });
 
-  if (!result.success || !result.data) {
-    setError(
-      result.message || "Failed to add new item.",
-    );
-    return;
-  }
-
-  setBazarMasterItems((prev) => {
-    const exists = prev.some(
-      (item) => item.id === result.data!.id,
-    );
-
-    if (exists) {
-      return prev;
+    if (!result.success || !result.data) {
+      setError(result.message || "Failed to add new item.");
+      return null;
     }
 
-    return [...prev, result.data!].sort((a, b) =>
-      a.nameEn.localeCompare(b.nameEn),
-    );
-  });
+    setBazarMasterItems((prev) => {
+      const exists = prev.some((item) => item.id === result.data!.id);
 
-  updateItem(itemId, "name", result.data.nameEn);
-};
+      if (exists) return prev;
+
+      return [...prev, result.data!].sort((a, b) =>
+        a.nameEn.localeCompare(b.nameEn),
+      );
+    });
+
+    return result.data;
+  };
 
   const isEditing = Boolean(editingEntry);
 
@@ -175,7 +167,7 @@ const BazarFormDialog = ({
   // Submit
   // -----------------------------------------------
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setError("");
@@ -193,6 +185,11 @@ const BazarFormDialog = ({
     }
 
     for (const item of validItems) {
+      if (!item.bazarItemId) {
+        setError(`Please select a valid item for "${item.name}".`);
+        return;
+      }
+
       const hasQuantity = item.quantity != null;
       const hasUnit = Boolean(item.unit);
 
@@ -210,6 +207,22 @@ const BazarFormDialog = ({
         setError(`Price for "${item.name}" cannot be negative.`);
         return;
       }
+    }
+
+    const result = await createBazar({
+      date,
+      deposit: Number(deposit) || 0,
+      items: validItems.map((item) => ({
+        bazarItemId: item.bazarItemId,
+        quantity: item.quantity,
+        unit: item.unit,
+        price: item.price,
+      })),
+    });
+
+    if (!result.success) {
+      setError(result.message);
+      return;
     }
 
     const entry: BazarEntry = {
@@ -320,20 +333,39 @@ const BazarFormDialog = ({
                       Item {index + 1}
                     </Label>
 
-                   <BazarItemSelector
-  items={bazarMasterItems}
-  value={item.name}
-  onChange={(value) =>
-    updateItem(item.id, "name", value)
-  }
-  onAddNew={(nameEn, nameBn) =>
-    handleAddNewItem(
-      item.id,
-      nameEn,
-      nameBn,
-    )
-  }
-/>
+                    <BazarItemSelector
+                      items={bazarMasterItems}
+                      value={item.name}
+                      onChange={(value) => {
+                        updateItem(item.id, "name", value);
+
+                        setItems((prev) =>
+                          prev.map((currentItem) =>
+                            currentItem.id === item.id
+                              ? {
+                                  ...currentItem,
+                                  name: value,
+                                  bazarItemId: "",
+                                }
+                              : currentItem,
+                          ),
+                        );
+                      }}
+                      onSelect={(selectedItem) => {
+                        setItems((prev) =>
+                          prev.map((currentItem) =>
+                            currentItem.id === item.id
+                              ? {
+                                  ...currentItem,
+                                  bazarItemId: selectedItem.id,
+                                  name: selectedItem.nameEn,
+                                }
+                              : currentItem,
+                          ),
+                        );
+                      }}
+                      onAddNew={handleAddNewItem}
+                    />
                   </div>
 
                   {/* Quantity */}
