@@ -35,6 +35,7 @@ const Page = async ({ searchParams }: PageProps) => {
   // If month already exists, don't redirect.
   return (
     <BazarPage
+      key={params.month}
       month={params.month}
       currentUserId={session?.user?.id ?? ""}
       currentUserRole={session?.user?.role ?? ""}
