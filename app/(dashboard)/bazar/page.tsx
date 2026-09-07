@@ -1,3 +1,4 @@
+import { getBazarEntries } from "@/actions/bazar/get-bazar-entries";
 import { auth } from "@/auth";
 import BazarPage from "@/components/bazar/bazar-page";
 import { Metadata } from "next";
@@ -29,6 +30,7 @@ const Page = async ({ searchParams }: PageProps) => {
 
     redirect(`/bazar?month=${currentMonth}`);
   }
+  const result = await getBazarEntries(params.month);
 
   // If month already exists, don't redirect.
   return (
@@ -36,6 +38,7 @@ const Page = async ({ searchParams }: PageProps) => {
       month={params.month}
       currentUserId={session?.user?.id ?? ""}
       currentUserRole={session?.user?.role ?? ""}
+      initialEntries={result.success ? result.data : []}
     />
   );
 };

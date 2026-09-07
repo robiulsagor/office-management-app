@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {  useMemo, useState } from "react";
 
 import { Printer, Plus, ShoppingBasket } from "lucide-react";
 
@@ -24,12 +24,14 @@ type BazarPageProps = {
   month: string;
   currentUserId: string;
   currentUserRole: string;
+  initialEntries: BazarEntry[];
 };
 
 const BazarPage = ({
   month,
   currentUserId,
   currentUserRole,
+  initialEntries
 }: BazarPageProps) => {
   // ------------------------------------------------
   // State
@@ -39,7 +41,7 @@ const BazarPage = ({
 
   const [selectedItem, setSelectedItem] = useState("");
 
-  const [entries, setEntries] = useState<BazarEntry[]>([]);
+  const [entries, setEntries] = useState<BazarEntry[]>(initialEntries);
 
   const [formOpen, setFormOpen] = useState(false);
 
@@ -56,21 +58,6 @@ const [deletingId, setDeletingId] = useState<string | null>(null);
 
     setEntries(result.data);
   };
-
-  useEffect(() => {
-    const loadBazarEntries = async () => {
-      const result = await getBazarEntries(month);
-
-      if (!result.success) {
-        console.error(result.message);
-        return;
-      }
-
-      setEntries(result.data);
-    };
-
-    void loadBazarEntries();
-  }, [month]);
 
   // ------------------------------------------------
   // Convert URL month to Date
