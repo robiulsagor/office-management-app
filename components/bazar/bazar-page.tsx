@@ -43,6 +43,16 @@ const BazarPage = ({
   const [formOpen, setFormOpen] = useState(false);
 
   const [editingEntry, setEditingEntry] = useState<BazarEntry | null>(null);
+  const refreshEntries = async () => {
+    const result = await getBazarEntries(month);
+
+    if (!result.success) {
+      console.error(result.message);
+      return;
+    }
+
+    setEntries(result.data);
+  };
 
   useEffect(() => {
     const loadBazarEntries = async () => {
@@ -56,7 +66,7 @@ const BazarPage = ({
       setEntries(result.data);
     };
 
-    loadBazarEntries();
+    void loadBazarEntries();
   }, [month]);
 
   // ------------------------------------------------
@@ -78,20 +88,19 @@ const BazarPage = ({
   // Edit Entry
   // ------------------------------------------------
 
-const handleEditEntry = (entry: BazarEntry) => {
-  const isOwner = entry.createdById === currentUserId;
+  const handleEditEntry = (entry: BazarEntry) => {
+    const isOwner = entry.createdById === currentUserId;
 
-  const isAdmin =
-    currentUserRole === "ADMIN" ||
-    currentUserRole === "SUPER_ADMIN";
+    const isAdmin =
+      currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
 
-  if (!isOwner && !isAdmin) {
-    return;
-  }
+    if (!isOwner && !isAdmin) {
+      return;
+    }
 
-  setEditingEntry(entry);
-  setFormOpen(true);
-};
+    setEditingEntry(entry);
+    setFormOpen(true);
+  };
 
   // ------------------------------------------------
   // Filter month
@@ -151,16 +160,8 @@ const handleEditEntry = (entry: BazarEntry) => {
   // Save Entry
   // ------------------------------------------------
 
-  const handleSaveEntry = (entry: BazarEntry) => {
-    setEntries((prev) => {
-      const exists = prev.some((item) => item.id === entry.id);
-
-      if (exists) {
-        return prev.map((item) => (item.id === entry.id ? entry : item));
-      }
-
-      return [...prev, entry];
-    });
+  const handleSaveEntry = async () => {
+    await refreshEntries();
 
     setEditingEntry(null);
   };
@@ -169,34 +170,29 @@ const handleEditEntry = (entry: BazarEntry) => {
   // Delete Entry
   // ------------------------------------------------
 
- const handleDeleteEntry = async (entry: BazarEntry) => {
-  const isOwner = entry.createdById === currentUserId;
+  const handleDeleteEntry = async (entry: BazarEntry) => {
+    const isOwner = entry.createdById === currentUserId;
 
-  const isAdmin =
-    currentUserRole === "ADMIN" ||
-    currentUserRole === "SUPER_ADMIN";
+    const isAdmin =
+      currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
 
-  if (!isOwner && !isAdmin) {
-    return;
-  }
+    if (!isOwner && !isAdmin) {
+      return;
+    }
 
-  const confirmed = window.confirm(
-    `Delete bazar entry for ${entry.date}?`,
-  );
+    const confirmed = window.confirm(`Delete bazar entry for ${entry.date}?`);
 
-  if (!confirmed) return;
+    if (!confirmed) return;
 
-  const result = await deleteBazarEntry(entry.id);
+    const result = await deleteBazarEntry(entry.id);
 
-  if (!result.success) {
-    console.error(result.message);
-    return;
-  }
+    if (!result.success) {
+      console.error(result.message);
+      return;
+    }
 
-  setEntries((prev) =>
-    prev.filter((item) => item.id !== entry.id),
-  );
-};
+    await refreshEntries();
+  };
   // ------------------------------------------------
   // Print
   // ------------------------------------------------

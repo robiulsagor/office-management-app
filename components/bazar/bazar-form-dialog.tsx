@@ -22,13 +22,14 @@ import BazarItemSelector from "./bazar-item-selector";
 import { createBazarItem } from "@/actions/bazar/create-bazar-item";
 import { createBazar } from "@/actions/bazar/create-bazar";
 import { getBazarMasterItems } from "@/actions/bazar/get-bazar-master-items";
+import { updateBazar } from "@/actions/bazar/update-bazar";
 
 type BazarFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedMonth: Date;
   editingEntry: BazarEntry | null;
-  onSave: (entry: BazarEntry) => void;
+ onSave: () => Promise<void>;
 };
 
 const createEmptyItem = (): BazarItem => ({
@@ -209,30 +210,34 @@ const BazarFormDialog = ({
       }
     }
 
-    const result = await createBazar({
-      date,
-      deposit: Number(deposit) || 0,
-      items: validItems.map((item) => ({
-        bazarItemId: item.bazarItemId,
-        quantity: item.quantity,
-        unit: item.unit,
-        price: item.price,
-      })),
-    });
+   const bazarData = {
+  date,
+  deposit: Number(deposit) || 0,
+  items: validItems.map((item) => ({
+    bazarItemId: item.bazarItemId,
+    quantity: item.quantity,
+    unit: item.unit,
+    price: item.price,
+  })),
+};
+
+let result;
+
+if (editingEntry) {
+  result = await updateBazar({
+    id: editingEntry.id,
+    ...bazarData,
+  });
+} else {
+  result = await createBazar(bazarData);
+}
 
     if (!result.success) {
       setError(result.message);
       return;
     }
 
-    const entry: BazarEntry = {
-      id: editingEntry?.id ?? crypto.randomUUID(),
-      date,
-      deposit: Number(deposit) || 0,
-      items: validItems,
-    };
-
-    onSave(entry);
+    await onSave();
     onOpenChange(false);
   };
 
