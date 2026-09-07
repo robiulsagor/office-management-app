@@ -23,13 +23,14 @@ import { createBazarItem } from "@/actions/bazar/create-bazar-item";
 import { createBazar } from "@/actions/bazar/create-bazar";
 import { getBazarMasterItems } from "@/actions/bazar/get-bazar-master-items";
 import { updateBazar } from "@/actions/bazar/update-bazar";
+import toast from "react-hot-toast";
 
 type BazarFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedMonth: Date;
   editingEntry: BazarEntry | null;
- onSave: () => Promise<void>;
+  onSave: () => Promise<void>;
 };
 
 const createEmptyItem = (): BazarItem => ({
@@ -52,6 +53,8 @@ const BazarFormDialog = ({
   const [deposit, setDeposit] = useState("");
   const [items, setItems] = useState<BazarItem[]>([createEmptyItem()]);
   const [error, setError] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [bazarMasterItems, setBazarMasterItems] = useState<
     {
@@ -210,34 +213,44 @@ const BazarFormDialog = ({
       }
     }
 
-   const bazarData = {
-  date,
-  deposit: Number(deposit) || 0,
-  items: validItems.map((item) => ({
-    bazarItemId: item.bazarItemId,
-    quantity: item.quantity,
-    unit: item.unit,
-    price: item.price,
-  })),
-};
+    setIsSubmitting(true);
 
-let result;
+    const bazarData = {
+      date,
+      deposit: Number(deposit) || 0,
+      items: validItems.map((item) => ({
+        bazarItemId: item.bazarItemId,
+        quantity: item.quantity,
+        unit: item.unit,
+        price: item.price,
+      })),
+    };
 
-if (editingEntry) {
-  result = await updateBazar({
-    id: editingEntry.id,
-    ...bazarData,
-  });
-} else {
-  result = await createBazar(bazarData);
-}
+    let result;
+
+    if (editingEntry) {
+      result = await updateBazar({
+        id: editingEntry.id,
+        ...bazarData,
+      });
+    } else {
+      result = await createBazar(bazarData);
+    }
 
     if (!result.success) {
+      setIsSubmitting(false);
       setError(result.message);
       return;
     }
 
     await onSave();
+    toast.success(
+      editingEntry
+        ? "Bazar entry updated successfully."
+        : "Bazar entry created successfully.",
+    );
+
+    setIsSubmitting(false);
     onOpenChange(false);
   };
 
@@ -461,13 +474,24 @@ if (editingEntry) {
             <Button
               type="button"
               variant="outline"
+              disabled={isSubmitting}
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
 
-            <Button type="submit" className="bg-teal-600 hover:bg-teal-700">
-              {isEditing ? "Save Changes" : "Add Bazar"}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-teal-600 hover:bg-teal-700"
+            >
+              {isSubmitting
+                ? isEditing
+                  ? "Saving..."
+                  : "Adding..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Add Bazar"}
             </Button>
           </DialogFooter>
         </form>

@@ -10,6 +10,7 @@ type BazarDayTableProps = {
   entries: BazarEntry[];
   currentUserId: string;
   currentUserRole: string;
+  deletingId: string | null;
   onEdit: (entry: BazarEntry) => void;
   onDelete: (entry: BazarEntry) => void;
 };
@@ -27,6 +28,7 @@ const BazarDayTable = ({
   entries,
   currentUserId,
   currentUserRole,
+  deletingId,
   onEdit,
   onDelete,
 }: BazarDayTableProps) => {
@@ -96,25 +98,31 @@ const BazarDayTable = ({
                       </span>
                     ) : (
                       <>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onEdit(entry)}
-                          title="Edit"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
+                        {deletingId !== entry.id && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(entry)}
+                            title="Edit"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        )}
 
                         <Button
                           type="button"
                           variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive"
+                          disabled={deletingId === entry.id}
                           onClick={() => onDelete(entry)}
                           title="Delete"
+                          className="text-muted-foreground hover:text-destructive"
                         >
-                          <Trash2 className="size-4" />
+                          {deletingId === entry.id ? (
+                            <span className="text-xs">Deleting...</span>
+                          ) : (
+                            <Trash2 className="size-4" />
+                          )}
                         </Button>
                       </>
                     )}

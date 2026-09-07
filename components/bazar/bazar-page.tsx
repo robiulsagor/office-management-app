@@ -18,6 +18,7 @@ import BazarItemTable from "./bazar-item-table";
 import BazarFormDialog from "./bazar-form-dialog";
 import { getBazarEntries } from "@/actions/bazar/get-bazar-entries";
 import { deleteBazarEntry } from "@/actions/bazar/delete-bazar-entry";
+import toast from "react-hot-toast";
 
 type BazarPageProps = {
   month: string;
@@ -43,6 +44,8 @@ const BazarPage = ({
   const [formOpen, setFormOpen] = useState(false);
 
   const [editingEntry, setEditingEntry] = useState<BazarEntry | null>(null);
+const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const refreshEntries = async () => {
     const result = await getBazarEntries(month);
 
@@ -170,29 +173,46 @@ const BazarPage = ({
   // Delete Entry
   // ------------------------------------------------
 
-  const handleDeleteEntry = async (entry: BazarEntry) => {
-    const isOwner = entry.createdById === currentUserId;
+ const handleDeleteEntry = async (entry: BazarEntry) => {
+  const isOwner = entry.createdById === currentUserId;
 
-    const isAdmin =
-      currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
+  const isAdmin =
+    currentUserRole === "ADMIN" ||
+    currentUserRole === "SUPER_ADMIN";
 
-    if (!isOwner && !isAdmin) {
-      return;
-    }
+  if (!isOwner && !isAdmin) {
+    return;
+  }
 
-    const confirmed = window.confirm(`Delete bazar entry for ${entry.date}?`);
+  if (deletingId) return;
 
-    if (!confirmed) return;
+  const confirmed = window.confirm(
+    `Delete bazar entry for ${entry.date}?`,
+  );
 
+  if (!confirmed) return;
+
+  setDeletingId(entry.id);
+
+  try {
     const result = await deleteBazarEntry(entry.id);
 
     if (!result.success) {
-      console.error(result.message);
+      toast.error(result.message || "Failed to delete bazar entry.");
       return;
     }
 
     await refreshEntries();
-  };
+
+    toast.success("Bazar entry deleted successfully.");
+  } catch (error) {
+    console.error("Delete bazar error:", error);
+    toast.error("Something went wrong while deleting the bazar entry.");
+  } finally {
+    setDeletingId(null);
+  }
+};
+
   // ------------------------------------------------
   // Print
   // ------------------------------------------------
@@ -309,6 +329,7 @@ const BazarPage = ({
               entries={filteredEntries}
               currentUserId={currentUserId}
               currentUserRole={currentUserRole}
+              deletingId={deletingId}
               onEdit={handleEditEntry}
               onDelete={handleDeleteEntry}
             />
