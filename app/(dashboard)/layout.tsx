@@ -18,9 +18,9 @@ export default async function RootLayout({
   return (
       <main className="h-screen bg-slate-200 p-3 w-full md:flex md:gap-3 border ">
         <Sidebar />
-        <div className="space-y-3 flex-1 w-full">
+        <div className=" flex-1 w-full">
           <Navbar />
-          <div className="w-full flex-1 bg-slate-50 shadow-xl rounded-xl p-5 max-h-[calc(100vh-120px)] overflow-y-auto">
+          <div className="w-full flex-1 bg-slate-50 shadow-xl rounded-bl-lg rounded-br-lg p-5 max-h-[calc(100vh-85px)] overflow-y-auto">
             {children}
           </div>
         </div>

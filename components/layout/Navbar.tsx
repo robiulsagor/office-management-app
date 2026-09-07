@@ -16,7 +16,7 @@ const Navbar = () => {
   const openNav = useMobileNav(state => state.open)
 
   return (
-    <div className="bg-slate-50 p-3 rounded-lg shadow-2xl">
+    <div className="bg-slate-50 p-3 rounded-tl-lg rounded-tr-lg shadow-2xl border-b">
       <div className="flex items-center justify-between">
         <span className="cursor-pointer p-1.5 rounded hover:bg-slate-200 transition duration-200 md:hidden">
           <Menu onClick={openNav}/>
