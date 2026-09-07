@@ -11,6 +11,7 @@ import EmployeeTable from "@/components/employees/employee-table";
 import { Employee, EmployeeFormData } from "@/types/employee";
 import EmployeeDialog from "@/components/employees/employee-form-dialog";
 import ViewEmployeeDialog from "@/components/employees/employee-view-dialog";
+import { UserDialog } from "@/components/user/user-dialog";
 
 // --------------------------------------------------
 // Mock Data
@@ -103,6 +104,9 @@ const Employees = () => {
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+
+  // for adding user to employee
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
 
   // ------------------------------------------------
   // Statistics
@@ -238,13 +242,19 @@ const Employees = () => {
           </div>
         </div>
 
-        <Button
-          onClick={handleAddEmployee}
-          className="bg-teal-600 hover:bg-teal-700"
-        >
-          <Plus className="mr-2 size-4" />
-          Add Employee
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleAddEmployee}
+            className="bg-teal-600 hover:bg-teal-700"
+          >
+            <Plus className="mr-2 size-4" />
+            Add Employee
+          </Button>
+
+          <Button variant="outline" onClick={() => setUserDialogOpen(true)}>
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* ============================================ */}
@@ -316,6 +326,11 @@ const Employees = () => {
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
       />
+
+      {/* ============================================ */}
+      {/* Add User Dialog */}
+      {/* ============================================ */}
+      <UserDialog open={userDialogOpen} onOpenChange={setUserDialogOpen} />
     </div>
   );
 };

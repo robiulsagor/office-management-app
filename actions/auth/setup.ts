@@ -69,6 +69,7 @@ export async function setupAdmin(data: unknown) {
         data: {
           employeeId: employee.id,
           username,
+          email,
           passwordHash: hashedPassword,
           role: "SUPER_ADMIN",
           accountStatus: "ACTIVE",

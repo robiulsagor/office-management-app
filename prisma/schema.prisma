@@ -33,48 +33,47 @@ enum AccountStatus {
 }
 
 model Employee {
-  id               String           @id @default(cuid())
-  employeeCode     String           @unique
-  name             String
-  nameBn           String?
-  designation      String
-  department       String?
-  phone            String?
-  email            String?
-  joiningDate      DateTime
-  employmentStatus EmploymentStatus @default(ACTIVE)
+  id                String           @id @default(cuid())
+  employeeCode      String           @unique
+  name              String
+  nameBn            String?
+  designation       String
+  department        String?
+  phone             String?
+  email             String?
+  address           String?
+  emergencyContact  String?
+  joiningDate       DateTime
+  employmentStatus  EmploymentStatus @default(ACTIVE)
 
-  user User?
-
+  user              User?
   conveyanceRecords ConveyanceRecord[]
   monthlyConveyance MonthlyConveyance[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([employmentStatus])
   @@index([department])
 }
 
 model User {
-  id            String        @id @default(cuid())
-  employeeId    String        @unique
-  username      String        @unique
-  passwordHash  String
-  role          Role          @default(EMPLOYEE)
-  accountStatus AccountStatus @default(ACTIVE)
-  lastLogin     DateTime?
+  id                         String     @id @default(cuid())
+  employeeId                 String     @unique
+  username                   String     @unique
+  email                      String     @unique
+  passwordHash               String
+  role                       Role       @default(EMPLOYEE)
+  accountStatus              AccountStatus @default(ACTIVE)
+  lastLogin                  DateTime?
 
-  employee Employee @relation(fields: [employeeId], references: [id])
-
-  bazarEntries BazarEntry[]
-
-  conveyanceRecords ConveyanceRecord[]
-
+  employee                   Employee @relation(fields: [employeeId], references: [id])
+  bazarEntries               BazarEntry[]
+  conveyanceRecords          ConveyanceRecord[]
   monthlyConveyanceApprovals MonthlyConveyanceApproval[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 }
 
 enum BazarUnit {
