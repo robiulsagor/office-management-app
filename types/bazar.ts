@@ -19,6 +19,7 @@ export type BazarEntry = {
   id: string;
   date: string;
   deposit: number;
+  createdById: string;
   items: BazarItem[];
 };
 

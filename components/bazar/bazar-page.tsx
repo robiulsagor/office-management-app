@@ -17,17 +17,19 @@ import BazarDayTable from "./bazar-day-table";
 import BazarItemTable from "./bazar-item-table";
 import BazarFormDialog from "./bazar-form-dialog";
 import { getBazarEntries } from "@/actions/bazar/get-bazar-entries";
+import { deleteBazarEntry } from "@/actions/bazar/delete-bazar-entry";
 
 type BazarPageProps = {
   month: string;
+  currentUserId: string;
+  currentUserRole: string;
 };
 
-// --------------------------------------------------
-// Mock data
-// --------------------------------------------------
-
-
-const BazarPage = ({ month }: BazarPageProps) => {
+const BazarPage = ({
+  month,
+  currentUserId,
+  currentUserRole,
+}: BazarPageProps) => {
   // ------------------------------------------------
   // State
   // ------------------------------------------------
@@ -36,26 +38,26 @@ const BazarPage = ({ month }: BazarPageProps) => {
 
   const [selectedItem, setSelectedItem] = useState("");
 
-const [entries, setEntries] = useState<BazarEntry[]>([]);
+  const [entries, setEntries] = useState<BazarEntry[]>([]);
 
   const [formOpen, setFormOpen] = useState(false);
 
   const [editingEntry, setEditingEntry] = useState<BazarEntry | null>(null);
 
   useEffect(() => {
-  const loadBazarEntries = async () => {
-    const result = await getBazarEntries(month);
+    const loadBazarEntries = async () => {
+      const result = await getBazarEntries(month);
 
-    if (!result.success) {
-      console.error(result.message);
-      return;
-    }
+      if (!result.success) {
+        console.error(result.message);
+        return;
+      }
 
-    setEntries(result.data);
-  };
+      setEntries(result.data);
+    };
 
-  loadBazarEntries();
-}, [month]);
+    loadBazarEntries();
+  }, [month]);
 
   // ------------------------------------------------
   // Convert URL month to Date
@@ -76,10 +78,20 @@ const [entries, setEntries] = useState<BazarEntry[]>([]);
   // Edit Entry
   // ------------------------------------------------
 
-  const handleEditEntry = (entry: BazarEntry) => {
-    setEditingEntry(entry);
-    setFormOpen(true);
-  };
+const handleEditEntry = (entry: BazarEntry) => {
+  const isOwner = entry.createdById === currentUserId;
+
+  const isAdmin =
+    currentUserRole === "ADMIN" ||
+    currentUserRole === "SUPER_ADMIN";
+
+  if (!isOwner && !isAdmin) {
+    return;
+  }
+
+  setEditingEntry(entry);
+  setFormOpen(true);
+};
 
   // ------------------------------------------------
   // Filter month
@@ -157,14 +169,34 @@ const [entries, setEntries] = useState<BazarEntry[]>([]);
   // Delete Entry
   // ------------------------------------------------
 
-  const handleDeleteEntry = (entry: BazarEntry) => {
-    const confirmed = window.confirm(`Delete bazar entry for ${entry.date}?`);
+ const handleDeleteEntry = async (entry: BazarEntry) => {
+  const isOwner = entry.createdById === currentUserId;
 
-    if (!confirmed) return;
+  const isAdmin =
+    currentUserRole === "ADMIN" ||
+    currentUserRole === "SUPER_ADMIN";
 
-    setEntries((prev) => prev.filter((item) => item.id !== entry.id));
-  };
+  if (!isOwner && !isAdmin) {
+    return;
+  }
 
+  const confirmed = window.confirm(
+    `Delete bazar entry for ${entry.date}?`,
+  );
+
+  if (!confirmed) return;
+
+  const result = await deleteBazarEntry(entry.id);
+
+  if (!result.success) {
+    console.error(result.message);
+    return;
+  }
+
+  setEntries((prev) =>
+    prev.filter((item) => item.id !== entry.id),
+  );
+};
   // ------------------------------------------------
   // Print
   // ------------------------------------------------
@@ -279,6 +311,8 @@ const [entries, setEntries] = useState<BazarEntry[]>([]);
           ) : viewMode === "day-wise" ? (
             <BazarDayTable
               entries={filteredEntries}
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
               onEdit={handleEditEntry}
               onDelete={handleDeleteEntry}
             />

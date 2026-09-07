@@ -55,6 +55,7 @@ export async function getBazarEntries(
         id: entry.id,
         date: entry.date.toISOString().split("T")[0],
         deposit: Number(entry.deposit),
+        createdById: entry.createdById,
 
         items: entry.items.map((item) => ({
           id: item.id,
