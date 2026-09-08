@@ -12,7 +12,10 @@ import EmployeeTable from "@/components/employees/employee-table";
 import { Employee } from "@/types/employee";
 import EmployeeDialog from "@/components/employees/employee-form-dialog";
 import ViewEmployeeDialog from "@/components/employees/employee-view-dialog";
-import { deleteEmployee, getEmployees } from "@/actions/employee/employee-actions";
+import {
+  deleteEmployee,
+  getEmployees,
+} from "@/actions/employee/employee-actions";
 import toast from "react-hot-toast";
 
 // --------------------------------------------------
@@ -115,11 +118,9 @@ const Employees = () => {
     (employee) => employee.employmentStatus === "ACTIVE",
   ).length;
 
- const inactiveEmployees = employees.filter((employee) =>
-  ["ON_LEAVE", "RESIGNED", "TERMINATED"].includes(
-    employee.employmentStatus,
-  ),
-).length;
+  const inactiveEmployees = employees.filter((employee) =>
+    ["ON_LEAVE", "RESIGNED", "TERMINATED"].includes(employee.employmentStatus),
+  ).length;
 
   // ------------------------------------------------
   // Filtering
@@ -167,7 +168,7 @@ const Employees = () => {
   // Delete Employee
   // ------------------------------------------------
 
-  const handleDeleteEmployee =async (employeeId: string) => {
+  const handleDeleteEmployee = async (employeeId: string) => {
     const employee = employees.find((item) => item.id === employeeId);
 
     if (!employee) return;
@@ -179,18 +180,16 @@ const Employees = () => {
     if (!confirmed) return;
 
     try {
-      const deleted= await deleteEmployee(employeeId)
-      if(deleted.success){
-        toast.success(deleted.message)
+      const deleted = await deleteEmployee(employeeId);
+      if (deleted.success) {
+        toast.success(deleted.message);
         loadEmployees();
-      }else{
-        toast.error(deleted.message)
+      } else {
+        toast.error(deleted.message);
       }
-      console.log(deleted)
     } catch (error) {
-      console.error(error)
+      toast.error(`Failed to delete the employee - ${employee.name}`);
     }
-
   };
 
   const handleViewEmployee = (employee: Employee) => {
@@ -199,17 +198,14 @@ const Employees = () => {
   };
 
   const loadEmployees = async () => {
-      const result = await getEmployees();
+    const result = await getEmployees();
 
-      console.log(result)
-
-      if (!result.success) {
-        console.error(result.message);
-        return;
-      }
-      console.log(result.employees);
-      setEmployees(result.employees);
-    };
+    if (!result.success) {
+      console.error(result.message);
+      return;
+    }
+    setEmployees(result.employees);
+  };
 
   useEffect(() => {
     loadEmployees();
