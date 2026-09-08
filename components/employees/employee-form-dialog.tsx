@@ -289,6 +289,10 @@ const EmployeeDialog = ({
                       Merchandising
                     </SelectItem>
 
+                    <SelectItem value="Quality">
+                      Quality
+                    </SelectItem>
+
                     <SelectItem value="Accounts">
                       Accounts
                     </SelectItem>
