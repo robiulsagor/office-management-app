@@ -6,14 +6,12 @@ import {
   Grid2X2,
   ListOrdered,
   NotebookPenIcon,
-  PanelRightOpen,
   ShoppingBasket,
   UserCheck,
   Users2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { motion } from "motion/react";
 
 import {
@@ -23,12 +21,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useMobileNav } from "@/store";
+import { useDesktopNav, useMobileNav } from "@/store";
 import SidebarHeader from "./sidebar-header";
 import { MenuTypes } from "@/types";
 import SidebarMenuItems from "./sidebar-items";
 
-const menuItems:MenuTypes[] = [
+const menuItems: MenuTypes[] = [
   {
     id: 1,
     path: "/dashboard",
@@ -47,7 +45,7 @@ const menuItems:MenuTypes[] = [
     id: 3,
     path: "/employees",
     label: "Employees",
-    icon: Users2 ,
+    icon: Users2,
     roles: ["super_admin", "admin"],
   },
   {
@@ -89,20 +87,22 @@ const menuItems:MenuTypes[] = [
 
 const Sidebar = () => {
   const path = usePathname();
-  const [showSidebar, setShowSidebar] = useState(true);
+  // const [showSidebar, setShowSidebar] = useState(true);
   const isMobileNavOpen = useMobileNav((state) => state.isOpen);
   const closeMobileNav = useMobileNav((state) => state.close);
 
-//   const visibleItems = menuItems.filter((item) =>
-//   item.roles.includes(user.role)
-// ); 
-// will implement role based access control later
+  const showSidebar = useDesktopNav((state) => state.isOpen);
 
-const handleLogout = async () => {
-  await signOut({
-    callbackUrl: "/login",
-  });
-};
+  //   const visibleItems = menuItems.filter((item) =>
+  //   item.roles.includes(user.role)
+  // );
+  // will implement role based access control later
+
+  const handleLogout = async () => {
+    await signOut({
+      callbackUrl: "/login",
+    });
+  };
 
   return (
     <div>
@@ -136,20 +136,16 @@ const handleLogout = async () => {
       </Sheet>
 
       <motion.div
-      animate={{
-        width: showSidebar ? "16rem" : "5rem",
-      }}
-      transition={{ duration: 0.3 }}
+        animate={{
+          width: showSidebar ? "16rem" : "5rem",
+        }}
+        transition={{ duration: 0.3 }}
         className={`h-full hidden p-3 md:block w-full bg-slate-50 shadow-xl rounded-xl relative`}
       >
-        <PanelRightOpen
-          size={39}
-          className={`absolute -right-4 top-6 cursor-pointer border border-slate-500 rounded-full p-1.5 opacity-50 hover:opacity-100 ${!showSidebar && "rotate-180"}`}
-          onClick={() => setShowSidebar((state) => !state)}
-        />
+        {/* show sidebar here */}
 
         <div className="h-[90%] hidden md:flex flex-col  justify-between">
-         <SidebarHeader />
+          <SidebarHeader />
 
           <SidebarMenuItems visibleMenu={menuItems} showSidebar={showSidebar} />
 
@@ -159,17 +155,17 @@ const handleLogout = async () => {
               className="flex gap-2 p-3 hover:underline hover:bg-teal-600/10 rounded-xl"
             >
               <DoorClosed />
-             <motion.span
-                   animate={{
-                     opacity: showSidebar ? 1 : 0,
-                     width: showSidebar ? "auto" : 0,
-                     display: showSidebar ? "block" : "none",
-                   }}
-                   transition={{ duration: 0.2 }}
-                   onClick={handleLogout}
-                 >
-                   Logout
-                 </motion.span>
+              <motion.span
+                animate={{
+                  opacity: showSidebar ? 1 : 0,
+                  width: showSidebar ? "auto" : 0,
+                  display: showSidebar ? "block" : "none",
+                }}
+                transition={{ duration: 0.2 }}
+                onClick={handleLogout}
+              >
+                Logout
+              </motion.span>
             </Link>
           </div>
         </div>

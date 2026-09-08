@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon, Menu, SearchIcon } from "lucide-react";
+import { BellIcon, Menu, PanelRightOpen, SearchIcon } from "lucide-react";
 import NotificationContainer from "./NotificationContainer";
 import {
   Popover,
@@ -9,28 +9,40 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useMobileNav } from "@/store";
+import { useDesktopNav, useMobileNav } from "@/store";
 import Image from "next/image";
 
 const Navbar = () => {
-  const openNav = useMobileNav(state => state.open)
+  const openNav = useMobileNav((state) => state.open);
+  const toggleDesktopNav = useDesktopNav((state) => state.toggle);
+  const showSidebar = useDesktopNav((state) => state.isOpen);
 
   return (
     <div className="bg-slate-50 p-3 rounded-tl-lg rounded-tr-lg shadow-2xl border-b">
       <div className="flex items-center justify-between">
         <span className="cursor-pointer p-1.5 rounded hover:bg-slate-200 transition duration-200 md:hidden">
-          <Menu onClick={openNav}/>
+          <Menu onClick={openNav} />
         </span>
-        <div className="hidden md:block border border-slate-300 rounded-lg p-1 relative">
-          <SearchIcon className="w-4 h-4 text-slate-400 absolute top-2 left-2 " />
-          <input
-            type="search"
-            name=""
-            id=""
-            placeholder="Search..."
-            className="pl-6 text-sm bg-transparent border-none focus:outline-none"
+
+        <div className=" gap-2 hidden md:flex">
+          <PanelRightOpen
+            size={39}
+            className={` cursor-pointer border border-slate-500 rounded-full p-1.5 opacity-50 hover:opacity-100 ${!showSidebar && "rotate-180"}`}
+            onClick={toggleDesktopNav}
           />
+
+          <div className="hidden md:block border border-slate-300 rounded-lg p-1 relative">
+            <SearchIcon className="w-4 h-4 text-slate-400 absolute top-2 left-2 " />
+            <input
+              type="search"
+              name=""
+              id=""
+              placeholder="Search..."
+              className="pl-6 text-sm bg-transparent border-none focus:outline-none"
+            />
+          </div>
         </div>
+
         <div className="flex space-x-6">
           <Popover>
             <PopoverTrigger>
@@ -46,7 +58,7 @@ const Navbar = () => {
               </PopoverHeader>
             </PopoverContent>
           </Popover>
-        
+
           <div className="flex items-center space-x-2">
             <Image
               src="https://avatars.githubusercontent.com/u/12345678?v=4"
