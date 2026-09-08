@@ -84,7 +84,7 @@ const EmployeeTable = ({
                         </p>
 
                         <p className="text-xs text-muted-foreground">
-                          {employee.employeeId}
+                          {employee.employeeCode}
                         </p>
                       </div>
                     </button>
@@ -111,19 +111,21 @@ const EmployeeTable = ({
 
                   {/* Joining Date */}
                   <td className="px-4 py-4">
-                    <span className="text-sm">{employee.joiningDate}</span>
+                    <span className="text-sm">
+                      {new Date(employee.joiningDate).toLocaleDateString("en-GB")}
+                    </span>
                   </td>
 
                   {/* Status */}
                   <td className="px-4 py-4">
                     <Badge
                       className={
-                        employee.status === "Active"
+                        employee.employmentStatus === "ACTIVE"
                           ? "bg-green-100 text-green-700 hover:bg-green-100"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-100"
                       }
                     >
-                      {employee.status}
+                      {employee.employmentStatus}
                     </Badge>
                   </td>
 
@@ -203,7 +205,7 @@ const EmployeeTable = ({
                     <p className="font-semibold">{employee.name}</p>
 
                     <p className="text-xs text-muted-foreground">
-                      {employee.employeeId}
+                      {/* {employee.employeeId} */}
                     </p>
                   </div>
                 </button>
@@ -265,7 +267,9 @@ const EmployeeTable = ({
                 <div>
                   <p className="text-xs text-muted-foreground">Joining Date</p>
 
-                  <p className="mt-1 font-medium">{employee.joiningDate}</p>
+                  <p className="mt-1 font-medium">
+                    {new Date(employee.joiningDate).toLocaleDateString("en-GB")}
+                  </p>
                 </div>
               </div>
 
@@ -273,12 +277,12 @@ const EmployeeTable = ({
               <div className="mt-4 border-t pt-3">
                 <Badge
                   className={
-                    employee.status === "Active"
+                    employee.employmentStatus === "ACTIVE"
                       ? "bg-green-100 text-green-700 hover:bg-green-100"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-100"
                   }
                 >
-                  {employee.status}
+                  {employee.employmentStatus}
                 </Badge>
               </div>
             </div>

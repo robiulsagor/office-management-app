@@ -1,16 +1,25 @@
- export type Employee = {
+export type EmployeeStatus =
+  | "ACTIVE"
+  | "ON_LEAVE"
+  | "RESIGNED"
+  | "TERMINATED";
+
+export type Employee = {
   id: string;
-  employeeId: string;
+  employeeCode: string;
   name: string;
+  nameBn: string | null;
   designation: string;
-  department: string;
-  phone: string;
-  email: string;
+  department: string | null;
+  phone: string | null;
+  email: string | null;
   joiningDate: string;
-  salary: string;
-  status: "Active" | "Inactive";
-  address: string;
-  emergencyContact: string;
+  salary?: string;
+  address: string | null;
+  emergencyContact: string | null;
+  employmentStatus: EmployeeStatus;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type EmployeeFormData = {
@@ -22,7 +31,7 @@ export type EmployeeFormData = {
   email: string;
   joiningDate: string;
   salary: string;
-  status: "Active" | "Inactive";
+  status: EmployeeStatus;
   address: string;
   emergencyContact: string;
 };

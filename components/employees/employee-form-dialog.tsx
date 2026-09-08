@@ -1,5 +1,7 @@
-import { Employee, EmployeeFormData } from "@/types/employee";
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -8,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import {
   Select,
   SelectContent,
@@ -16,16 +19,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+import {
+  createEmployeeSchema,
+  type CreateEmployeeFormData,
+} from "./employee-schema";
+import { createEmployee } from "@/actions/employee/employee-actions";
 
 
-// --------------------------------------------------
-// Empty Form
-// --------------------------------------------------
+type EmployeeDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
 
-const emptyForm: EmployeeFormData = {
+const emptyForm: CreateEmployeeFormData = {
   employeeId: "",
   name: "",
   designation: "",
@@ -34,82 +44,130 @@ const emptyForm: EmployeeFormData = {
   email: "",
   joiningDate: "",
   salary: "",
-  status: "Active",
+  status: "ACTIVE",
   address: "",
   emergencyContact: "",
-};
-
-type EmployeeDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  employee: Employee | null;
-  onSave: (data: EmployeeFormData) => void;
 };
 
 const EmployeeDialog = ({
   open,
   onOpenChange,
-  employee,
-  onSave,
 }: EmployeeDialogProps) => {
-  const [formData, setFormData] = useState<EmployeeFormData>(
-    employee
-      ? {
-          employeeId: employee.employeeId,
-          name: employee.name,
-          designation: employee.designation,
-          department: employee.department,
-          phone: employee.phone,
-          email: employee.email,
-          joiningDate: employee.joiningDate,
-          salary: employee.salary,
-          status: employee.status,
-          address: employee.address,
-          emergencyContact: employee.emergencyContact,
-        }
-      : emptyForm,
-  );
+  const [formData, setFormData] =
+    useState<CreateEmployeeFormData>(emptyForm);
 
-  const updateField = (field: keyof EmployeeFormData, value: string) => {
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CreateEmployeeFormData, string>>
+  >({});
+
+  const [serverError, setServerError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData(emptyForm);
+      setErrors({});
+      setServerError("");
+    }
+  }, [open]);
+
+  const updateField = (
+    field: keyof CreateEmployeeFormData,
+    value: string,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: undefined,
+    }));
+
+    setServerError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) return;
-    if (!formData.employeeId.trim()) return;
+    setServerError("");
 
-    onSave(formData);
+    const parsed = createEmployeeSchema.safeParse(formData);
+
+    if (!parsed.success) {
+      const fieldErrors: Partial<
+        Record<keyof CreateEmployeeFormData, string>
+      > = {};
+
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof CreateEmployeeFormData;
+
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setSubmitting(true);
+
+    const result = await createEmployee(parsed.data);
+
+    if (!result.success) {
+      setServerError(result.message);
+      setSubmitting(false);
+      return;
+    }
+
+    setFormData(emptyForm);
+    setErrors({});
+    setServerError("");
+    setSubmitting(false);
+
     onOpenChange(false);
   };
 
+  const handleDialogChange = (value: boolean) => {
+    if (!value && !submitting) {
+      setFormData(emptyForm);
+      setErrors({});
+      setServerError("");
+    }
+
+    onOpenChange(value);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={handleDialogChange}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {employee ? "Edit Employee" : "Add Employee"}
-          </DialogTitle>
+          <DialogTitle>Add Employee</DialogTitle>
 
           <DialogDescription>
-            {employee
-              ? "Update the employee information below."
-              : "Enter the information for the new employee."}
+            Enter the information for the new employee.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* --------------------------------------- */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
           {/* Basic Information */}
-          {/* --------------------------------------- */}
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold">Basic Information</h3>
+              <h3 className="text-sm font-semibold">
+                Basic Information
+              </h3>
 
               <p className="text-xs text-muted-foreground">
                 Employee identification and personal information.
@@ -118,76 +176,142 @@ const EmployeeDialog = ({
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Employee ID */}
+
               <div className="space-y-2">
-                <Label htmlFor="employeeId">Employee ID</Label>
+                <Label htmlFor="employeeId">
+                  Employee ID
+                </Label>
 
                 <Input
                   id="employeeId"
                   placeholder="e.g. ACS-006"
                   value={formData.employeeId}
-                  onChange={(e) => updateField("employeeId", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "employeeId",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.employeeId && (
+                  <p className="text-sm text-destructive">
+                    {errors.employeeId}
+                  </p>
+                )}
               </div>
 
               {/* Name */}
+
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">
+                  Full Name
+                </Label>
 
                 <Input
                   id="name"
                   placeholder="Employee name"
                   value={formData.name}
-                  onChange={(e) => updateField("name", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "name",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               {/* Designation */}
+
               <div className="space-y-2">
-                <Label htmlFor="designation">Designation</Label>
+                <Label htmlFor="designation">
+                  Designation
+                </Label>
 
                 <Input
                   id="designation"
                   placeholder="e.g. Merchandiser"
                   value={formData.designation}
-                  onChange={(e) => updateField("designation", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "designation",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.designation && (
+                  <p className="text-sm text-destructive">
+                    {errors.designation}
+                  </p>
+                )}
               </div>
 
               {/* Department */}
+
               <div className="space-y-2">
-                <Label>Department</Label>
+                <Label>
+                  Department
+                </Label>
 
                 <Select
                   value={formData.department}
                   onValueChange={(value) =>
-                    updateField("department", value ?? "")
+                    updateField(
+                      "department",
+                      value ?? "",
+                    )
                   }
+                  disabled={submitting}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="Management">Management</SelectItem>
+                    <SelectItem value="Management">
+                      Management
+                    </SelectItem>
 
-                    <SelectItem value="Merchandising">Merchandising</SelectItem>
+                    <SelectItem value="Merchandising">
+                      Merchandising
+                    </SelectItem>
 
-                    <SelectItem value="Accounts">Accounts</SelectItem>
+                    <SelectItem value="Accounts">
+                      Accounts
+                    </SelectItem>
 
-                    <SelectItem value="Admin">Admin</SelectItem>
+                    <SelectItem value="Admin">
+                      Admin
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+
+                {errors.department && (
+                  <p className="text-sm text-destructive">
+                    {errors.department}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* --------------------------------------- */}
           {/* Contact Information */}
-          {/* --------------------------------------- */}
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold">Contact Information</h3>
+              <h3 className="text-sm font-semibold">
+                Contact Information
+              </h3>
 
               <p className="text-xs text-muted-foreground">
                 Employee contact and emergency information.
@@ -196,65 +320,123 @@ const EmployeeDialog = ({
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Phone */}
+
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">
+                  Phone
+                </Label>
 
                 <Input
                   id="phone"
                   placeholder="01XXXXXXXXX"
                   value={formData.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "phone",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.phone && (
+                  <p className="text-sm text-destructive">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
 
               {/* Email */}
+
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">
+                  Email
+                </Label>
 
                 <Input
                   id="email"
                   type="email"
                   placeholder="employee@example.com"
                   value={formData.email}
-                  onChange={(e) => updateField("email", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "email",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.email && (
+                  <p className="text-sm text-destructive">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               {/* Emergency Contact */}
+
               <div className="space-y-2">
-                <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                <Label htmlFor="emergencyContact">
+                  Emergency Contact
+                </Label>
 
                 <Input
                   id="emergencyContact"
                   placeholder="01XXXXXXXXX"
                   value={formData.emergencyContact}
                   onChange={(e) =>
-                    updateField("emergencyContact", e.target.value)
+                    updateField(
+                      "emergencyContact",
+                      e.target.value,
+                    )
                   }
+                  disabled={submitting}
                 />
+
+                {errors.emergencyContact && (
+                  <p className="text-sm text-destructive">
+                    {errors.emergencyContact}
+                  </p>
+                )}
               </div>
 
               {/* Address */}
+
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">
+                  Address
+                </Label>
 
                 <Input
                   id="address"
                   placeholder="Employee address"
                   value={formData.address}
-                  onChange={(e) => updateField("address", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "address",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.address && (
+                  <p className="text-sm text-destructive">
+                    {errors.address}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* --------------------------------------- */}
           {/* Job Information */}
-          {/* --------------------------------------- */}
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold">Job Information</h3>
+              <h3 className="text-sm font-semibold">
+                Job Information
+              </h3>
 
               <p className="text-xs text-muted-foreground">
                 Employment and salary information.
@@ -263,20 +445,38 @@ const EmployeeDialog = ({
 
             <div className="grid gap-4 sm:grid-cols-3">
               {/* Joining Date */}
+
               <div className="space-y-2">
-                <Label htmlFor="joiningDate">Joining Date</Label>
+                <Label htmlFor="joiningDate">
+                  Joining Date
+                </Label>
 
                 <Input
                   id="joiningDate"
                   type="date"
                   value={formData.joiningDate}
-                  onChange={(e) => updateField("joiningDate", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "joiningDate",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.joiningDate && (
+                  <p className="text-sm text-destructive">
+                    {errors.joiningDate}
+                  </p>
+                )}
               </div>
 
               {/* Salary */}
+
               <div className="space-y-2">
-                <Label htmlFor="salary">Monthly Salary</Label>
+                <Label htmlFor="salary">
+                  Monthly Salary
+                </Label>
 
                 <Input
                   id="salary"
@@ -284,46 +484,97 @@ const EmployeeDialog = ({
                   min="0"
                   placeholder="0"
                   value={formData.salary}
-                  onChange={(e) => updateField("salary", e.target.value)}
+                  onChange={(e) =>
+                    updateField(
+                      "salary",
+                      e.target.value,
+                    )
+                  }
+                  disabled={submitting}
                 />
+
+                {errors.salary && (
+                  <p className="text-sm text-destructive">
+                    {errors.salary}
+                  </p>
+                )}
               </div>
 
               {/* Status */}
+
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>
+                  Status
+                </Label>
 
                 <Select
                   value={formData.status}
                   onValueChange={(value) =>
-                    updateField("status", value as "Active" | "Inactive")
+                    updateField(
+                      "status",
+                      value ?? "ACTIVE",
+                    )
                   }
+                  disabled={submitting}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="ACTIVE">
+                      Active
+                    </SelectItem>
 
-                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="ON_LEAVE">
+                      On Leave
+                    </SelectItem>
+
+                    <SelectItem value="RESIGNED">
+                      Resigned
+                    </SelectItem>
+
+                    <SelectItem value="TERMINATED">
+                      Terminated
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+
+                {errors.status && (
+                  <p className="text-sm text-destructive">
+                    {errors.status}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Footer */}
+          {serverError && (
+            <p className="text-sm text-destructive">
+              {serverError}
+            </p>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() =>
+                handleDialogChange(false)
+              }
+              disabled={submitting}
             >
               Cancel
             </Button>
 
-            <Button type="submit" className="bg-teal-600 hover:bg-teal-700">
-              {employee ? "Save Changes" : "Add Employee"}
+            <Button
+              type="submit"
+              className="bg-teal-600 hover:bg-teal-700"
+              disabled={submitting}
+            >
+              {submitting
+                ? "Adding..."
+                : "Add Employee"}
             </Button>
           </DialogFooter>
         </form>

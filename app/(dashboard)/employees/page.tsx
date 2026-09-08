@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,90 +9,90 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EmployeeStats from "@/components/employees/employee-stats";
 import EmployeeFilters from "@/components/employees/employee-filters";
 import EmployeeTable from "@/components/employees/employee-table";
-import { Employee, EmployeeFormData } from "@/types/employee";
+import { Employee } from "@/types/employee";
 import EmployeeDialog from "@/components/employees/employee-form-dialog";
 import ViewEmployeeDialog from "@/components/employees/employee-view-dialog";
-import { UserDialog } from "@/components/user/user-dialog";
+import { getEmployees } from "@/actions/employee/employee-actions";
 
 // --------------------------------------------------
 // Mock Data
 // --------------------------------------------------
 
-const initialEmployees: Employee[] = [
-  {
-    id: "1",
-    employeeId: "ACS-001",
-    name: "Md. Rahim",
-    designation: "Managing Director",
-    department: "Management",
-    phone: "01711-111111",
-    email: "rahim@acs.com",
-    joiningDate: "2022-01-01",
-    salary: "80000",
-    status: "Active",
-    address: "Uttara, Dhaka",
-    emergencyContact: "01700-111111",
-  },
-  {
-    id: "2",
-    employeeId: "ACS-002",
-    name: "Md. Karim",
-    designation: "Merchandiser",
-    department: "Merchandising",
-    phone: "01711-222222",
-    email: "karim@acs.com",
-    joiningDate: "2023-03-15",
-    salary: "30000",
-    status: "Active",
-    address: "Mirpur, Dhaka",
-    emergencyContact: "01700-222222",
-  },
-  {
-    id: "3",
-    employeeId: "ACS-003",
-    name: "Sadia Akter",
-    designation: "Accountant",
-    department: "Accounts",
-    phone: "01811-333333",
-    email: "sadia@acs.com",
-    joiningDate: "2023-06-10",
-    salary: "28000",
-    status: "Active",
-    address: "Mohammadpur, Dhaka",
-    emergencyContact: "01700-333333",
-  },
-  {
-    id: "4",
-    employeeId: "ACS-004",
-    name: "Hasan Mahmud",
-    designation: "Admin Executive",
-    department: "Admin",
-    phone: "01911-444444",
-    email: "hasan@acs.com",
-    joiningDate: "2024-02-05",
-    salary: "25000",
-    status: "Active",
-    address: "Uttara, Dhaka",
-    emergencyContact: "01700-444444",
-  },
-  {
-    id: "5",
-    employeeId: "ACS-005",
-    name: "Nusrat Jahan",
-    designation: "Junior Merchandiser",
-    department: "Merchandising",
-    phone: "01611-555555",
-    email: "nusrat@acs.com",
-    joiningDate: "2024-08-20",
-    salary: "22000",
-    status: "Inactive",
-    address: "Badda, Dhaka",
-    emergencyContact: "01700-555555",
-  },
-];
+// const initialEmployees: Employee[] = [
+//   {
+//     id: "1",
+//     employeeCode: "ACS-001",
+//     name: "Md. Rahim",
+//     designation: "Managing Director",
+//     department: "Management",
+//     phone: "01711-111111",
+//     email: "rahim@acs.com",
+//     joiningDate: "2022-01-01",
+//     salary: "80000",
+//     employmentStatus: "ACTIVE",
+//     address: "Uttara, Dhaka",
+//     emergencyContact: "01700-111111",
+//   },
+//   {
+//     id: "2",
+//     employeeCode: "ACS-002",
+//     name: "Md. Karim",
+//     designation: "Merchandiser",
+//     department: "Merchandising",
+//     phone: "01711-222222",
+//     email: "karim@acs.com",
+//     joiningDate: "2023-03-15",
+//     salary: "30000",
+//     employmentStatus: "Active",
+//     address: "Mirpur, Dhaka",
+//     emergencyContact: "01700-222222",
+//   },
+//   {
+//     id: "3",
+//     employeeCode: "ACS-003",
+//     name: "Sadia Akter",
+//     designation: "Accountant",
+//     department: "Accounts",
+//     phone: "01811-333333",
+//     email: "sadia@acs.com",
+//     joiningDate: "2023-06-10",
+//     salary: "28000",
+//     employmentStatus: "Active",
+//     address: "Mohammadpur, Dhaka",
+//     emergencyContact: "01700-333333",
+//   },
+//   {
+//     id: "4",
+//     employeeCode: "ACS-004",
+//     name: "Hasan Mahmud",
+//     designation: "Admin Executive",
+//     department: "Admin",
+//     phone: "01911-444444",
+//     email: "hasan@acs.com",
+//     joiningDate: "2024-02-05",
+//     salary: "25000",
+//     employmentStatus: "Active",
+//     address: "Uttara, Dhaka",
+//     emergencyContact: "01700-444444",
+//   },
+//   {
+//     id: "5",
+//     employeeCode: "ACS-005",
+//     name: "Nusrat Jahan",
+//     designation: "Junior Merchandiser",
+//     department: "Merchandising",
+//     phone: "01611-555555",
+//     email: "nusrat@acs.com",
+//     joiningDate: "2024-08-20",
+//     salary: "22000",
+//     employmentStatus: "Inactive",
+//     address: "Badda, Dhaka",
+//     emergencyContact: "01700-555555",
+//   },
+// ];
 
 const Employees = () => {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("all");
@@ -105,20 +106,19 @@ const Employees = () => {
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
-  // for adding user to employee
-  const [userDialogOpen, setUserDialogOpen] = useState(false);
-
   // ------------------------------------------------
   // Statistics
   // ------------------------------------------------
 
   const activeEmployees = employees.filter(
-    (employee) => employee.status === "Active",
+    (employee) => employee.employmentStatus === "ACTIVE",
   ).length;
 
-  const inactiveEmployees = employees.filter(
-    (employee) => employee.status === "Inactive",
-  ).length;
+ const inactiveEmployees = employees.filter((employee) =>
+  ["ON_LEAVE", "RESIGNED", "TERMINATED"].includes(
+    employee.employmentStatus,
+  ),
+).length;
 
   // ------------------------------------------------
   // Filtering
@@ -131,14 +131,14 @@ const Employees = () => {
       const matchesSearch =
         !searchValue ||
         employee.name.toLowerCase().includes(searchValue) ||
-        employee.employeeId.toLowerCase().includes(searchValue) ||
+        employee.employeeCode.toLowerCase().includes(searchValue) ||
         employee.designation.toLowerCase().includes(searchValue);
 
       const matchesDepartment =
         department === "all" || employee.department === department;
 
       const matchesStatus =
-        status === "all" || employee.status.toLowerCase() === status;
+        status === "all" || employee.employmentStatus.toLowerCase() === status;
 
       return matchesSearch && matchesDepartment && matchesStatus;
     });
@@ -160,38 +160,6 @@ const Employees = () => {
   const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee);
     setEmployeeDialogOpen(true);
-  };
-
-  // ------------------------------------------------
-  // Save Employee
-  // ------------------------------------------------
-
-  const handleSaveEmployee = (formData: EmployeeFormData) => {
-    if (editingEmployee) {
-      // Update existing employee
-
-      setEmployees((prev) =>
-        prev.map((employee) =>
-          employee.id === editingEmployee.id
-            ? {
-                ...employee,
-                ...formData,
-              }
-            : employee,
-        ),
-      );
-    } else {
-      // Add new employee
-
-      const newEmployee: Employee = {
-        id: crypto.randomUUID(),
-        ...formData,
-      };
-
-      setEmployees((prev) => [...prev, newEmployee]);
-    }
-
-    setEditingEmployee(null);
   };
 
   // ------------------------------------------------
@@ -219,6 +187,23 @@ const Employees = () => {
     setViewDialogOpen(true);
   };
 
+  useEffect(() => {
+    const loadEmployees = async () => {
+      const result = await getEmployees();
+
+      console.log(result)
+
+      if (!result.success) {
+        console.error(result.message);
+        return;
+      }
+      console.log(result.employees);
+      setEmployees(result.employees);
+    };
+
+    loadEmployees();
+  }, []);
+
   return (
     <div className="mx-auto w-full space-y-6 pb-10">
       {/* ============================================ */}
@@ -242,19 +227,13 @@ const Employees = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleAddEmployee}
-            className="bg-teal-600 hover:bg-teal-700"
-          >
-            <Plus className="mr-2 size-4" />
-            Add Employee
-          </Button>
-
-          <Button variant="outline" onClick={() => setUserDialogOpen(true)}>
-            Add User
-          </Button>
-        </div>
+        <Button
+          onClick={handleAddEmployee}
+          className="bg-teal-600 hover:bg-teal-700"
+        >
+          <Plus className="mr-2 size-4" />
+          Add Employee
+        </Button>
       </div>
 
       {/* ============================================ */}
@@ -313,8 +292,6 @@ const Employees = () => {
       <EmployeeDialog
         open={employeeDialogOpen}
         onOpenChange={setEmployeeDialogOpen}
-        employee={editingEmployee}
-        onSave={handleSaveEmployee}
       />
 
       {/* ============================================ */}
@@ -326,11 +303,6 @@ const Employees = () => {
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
       />
-
-      {/* ============================================ */}
-      {/* Add User Dialog */}
-      {/* ============================================ */}
-      <UserDialog open={userDialogOpen} onOpenChange={setUserDialogOpen} />
     </div>
   );
 };
