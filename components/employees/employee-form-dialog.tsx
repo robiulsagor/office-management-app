@@ -33,6 +33,7 @@ import { createEmployee } from "@/actions/employee/employee-actions";
 type EmployeeDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEmployeeCreated?: () => void;
 };
 
 const emptyForm: CreateEmployeeFormData = {
@@ -52,6 +53,7 @@ const emptyForm: CreateEmployeeFormData = {
 const EmployeeDialog = ({
   open,
   onOpenChange,
+  onEmployeeCreated,
 }: EmployeeDialogProps) => {
   const [formData, setFormData] =
     useState<CreateEmployeeFormData>(emptyForm);
@@ -131,6 +133,7 @@ const EmployeeDialog = ({
     setSubmitting(false);
 
     onOpenChange(false);
+    onEmployeeCreated?.();
   };
 
   const handleDialogChange = (value: boolean) => {

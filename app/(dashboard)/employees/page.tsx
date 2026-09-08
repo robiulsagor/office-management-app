@@ -187,8 +187,7 @@ const Employees = () => {
     setViewDialogOpen(true);
   };
 
-  useEffect(() => {
-    const loadEmployees = async () => {
+  const loadEmployees = async () => {
       const result = await getEmployees();
 
       console.log(result)
@@ -201,6 +200,8 @@ const Employees = () => {
       setEmployees(result.employees);
     };
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadEmployees();
   }, []);
 
@@ -292,6 +293,7 @@ const Employees = () => {
       <EmployeeDialog
         open={employeeDialogOpen}
         onOpenChange={setEmployeeDialogOpen}
+        onEmployeeCreated={loadEmployees}
       />
 
       {/* ============================================ */}
