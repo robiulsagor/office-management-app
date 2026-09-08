@@ -12,7 +12,8 @@ import EmployeeTable from "@/components/employees/employee-table";
 import { Employee } from "@/types/employee";
 import EmployeeDialog from "@/components/employees/employee-form-dialog";
 import ViewEmployeeDialog from "@/components/employees/employee-view-dialog";
-import { getEmployees } from "@/actions/employee/employee-actions";
+import { deleteEmployee, getEmployees } from "@/actions/employee/employee-actions";
+import toast from "react-hot-toast";
 
 // --------------------------------------------------
 // Mock Data
@@ -166,20 +167,30 @@ const Employees = () => {
   // Delete Employee
   // ------------------------------------------------
 
-  const handleDeleteEmployee = (employeeId: string) => {
+  const handleDeleteEmployee =async (employeeId: string) => {
     const employee = employees.find((item) => item.id === employeeId);
 
     if (!employee) return;
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${employee.name}?`,
+      `Are you sure you want to delete ${employee.name} ${employeeId}?`,
     );
 
     if (!confirmed) return;
 
-    setEmployees((prev) =>
-      prev.filter((employee) => employee.id !== employeeId),
-    );
+    try {
+      const deleted= await deleteEmployee(employeeId)
+      if(deleted.success){
+        toast.success(deleted.message)
+        loadEmployees();
+      }else{
+        toast.error(deleted.message)
+      }
+      console.log(deleted)
+    } catch (error) {
+      console.error(error)
+    }
+
   };
 
   const handleViewEmployee = (employee: Employee) => {
@@ -201,7 +212,6 @@ const Employees = () => {
     };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadEmployees();
   }, []);
 

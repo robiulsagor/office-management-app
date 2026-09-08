@@ -115,6 +115,44 @@ export async function createEmployee(data: unknown) {
   }
 }
 
+export const deleteEmployee = async (empId: string) => {
+  const session = await auth()
+
+  if(!session?.user?.id){
+    return {
+      success: false,
+      message: "Unauthorized!",
+    }
+  }
+
+  if(session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN"){
+    return {
+      success: false,
+      message: "You do not have permission to delete an employee!"
+    }
+  }
+
+  try {
+     await prisma.employee.delete({
+      where: {
+        id: empId
+      }
+    })
+
+    return {
+      success: true,
+      message: "Employee record deleted!"
+    }
+  } catch (error) {
+    console.error("Something went wrong when deleting employee! ", error)
+
+    return {
+      success: false,
+      message:  "Failed to delete employee!"
+    }
+  }
+}
+
 export async function getEmployees() {
   const session = await auth();
 
