@@ -174,7 +174,7 @@ const Employees = () => {
     if (!employee) return;
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${employee.name} ${employeeId}?`,
+      `Are you sure you want to delete ${employee.name}?`,
     );
 
     if (!confirmed) return;
