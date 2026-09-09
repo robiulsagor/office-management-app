@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Dialog,
@@ -27,13 +27,17 @@ import {
   createEmployeeSchema,
   type CreateEmployeeFormData,
 } from "./employee-schema";
-import { createEmployee } from "@/actions/employee/employee-actions";
-
+import {
+  createEmployee,
+  updateEmployee,
+} from "@/actions/employee/employee-actions";
+import { Employee } from "@/types/employee";
 
 type EmployeeDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEmployeeCreated?: () => void;
+  editingEmployee?: Employee | null;
 };
 
 const emptyForm: CreateEmployeeFormData = {
@@ -54,9 +58,28 @@ const EmployeeDialog = ({
   open,
   onOpenChange,
   onEmployeeCreated,
+  editingEmployee,
 }: EmployeeDialogProps) => {
-  const [formData, setFormData] =
-    useState<CreateEmployeeFormData>(emptyForm);
+ const [formData, setFormData] =
+  useState<CreateEmployeeFormData>(() => {
+    if (editingEmployee) {
+      return {
+        employeeId: editingEmployee.employeeCode,
+        name: editingEmployee.name,
+        designation: editingEmployee.designation,
+        department: editingEmployee.department ?? "",
+        phone: editingEmployee.phone ?? "",
+        email: editingEmployee.email ?? "",
+        joiningDate: editingEmployee.joiningDate.slice(0, 10),
+        salary: editingEmployee.salary ?? "",
+        status: editingEmployee.employmentStatus,
+        address: editingEmployee.address ?? "",
+        emergencyContact: editingEmployee.emergencyContact ?? "",
+      };
+    }
+
+    return emptyForm;
+  });
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof CreateEmployeeFormData, string>>
@@ -65,19 +88,8 @@ const EmployeeDialog = ({
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData(emptyForm);
-      setErrors({});
-      setServerError("");
-    }
-  }, [open]);
 
-  const updateField = (
-    field: keyof CreateEmployeeFormData,
-    value: string,
-  ) => {
+  const updateField = (field: keyof CreateEmployeeFormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -91,9 +103,7 @@ const EmployeeDialog = ({
     setServerError("");
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setServerError("");
@@ -101,9 +111,8 @@ const EmployeeDialog = ({
     const parsed = createEmployeeSchema.safeParse(formData);
 
     if (!parsed.success) {
-      const fieldErrors: Partial<
-        Record<keyof CreateEmployeeFormData, string>
-      > = {};
+      const fieldErrors: Partial<Record<keyof CreateEmployeeFormData, string>> =
+        {};
 
       parsed.error.issues.forEach((issue) => {
         const field = issue.path[0] as keyof CreateEmployeeFormData;
@@ -119,7 +128,9 @@ const EmployeeDialog = ({
 
     setSubmitting(true);
 
-    const result = await createEmployee(parsed.data);
+    const result = editingEmployee
+      ? await updateEmployee(editingEmployee.id, parsed.data)
+      : await createEmployee(parsed.data);
 
     if (!result.success) {
       setServerError(result.message);
@@ -147,30 +158,26 @@ const EmployeeDialog = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleDialogChange}
-    >
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Employee</DialogTitle>
+          <DialogTitle>
+            {editingEmployee ? "Edit Employee" : "Add Employee"}
+          </DialogTitle>
 
           <DialogDescription>
-            Enter the information for the new employee.
+            {editingEmployee
+              ? "Update the employee information."
+              : "Enter the information for the new employee."}
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold">
-                Basic Information
-              </h3>
+              <h3 className="text-sm font-semibold">Basic Information</h3>
 
               <p className="text-xs text-muted-foreground">
                 Employee identification and personal information.
@@ -181,20 +188,13 @@ const EmployeeDialog = ({
               {/* Employee ID */}
 
               <div className="space-y-2">
-                <Label htmlFor="employeeId">
-                  Employee ID
-                </Label>
+                <Label htmlFor="employeeId">Employee ID</Label>
 
                 <Input
                   id="employeeId"
                   placeholder="e.g. ACS-006"
                   value={formData.employeeId}
-                  onChange={(e) =>
-                    updateField(
-                      "employeeId",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("employeeId", e.target.value)}
                   disabled={submitting}
                 />
 
@@ -208,47 +208,31 @@ const EmployeeDialog = ({
               {/* Name */}
 
               <div className="space-y-2">
-                <Label htmlFor="name">
-                  Full Name
-                </Label>
+                <Label htmlFor="name">Full Name</Label>
 
                 <Input
                   id="name"
                   placeholder="Employee name"
                   value={formData.name}
-                  onChange={(e) =>
-                    updateField(
-                      "name",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("name", e.target.value)}
                   disabled={submitting}
                 />
 
                 {errors.name && (
-                  <p className="text-sm text-destructive">
-                    {errors.name}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.name}</p>
                 )}
               </div>
 
               {/* Designation */}
 
               <div className="space-y-2">
-                <Label htmlFor="designation">
-                  Designation
-                </Label>
+                <Label htmlFor="designation">Designation</Label>
 
                 <Input
                   id="designation"
                   placeholder="e.g. Merchandiser"
                   value={formData.designation}
-                  onChange={(e) =>
-                    updateField(
-                      "designation",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("designation", e.target.value)}
                   disabled={submitting}
                 />
 
@@ -262,17 +246,12 @@ const EmployeeDialog = ({
               {/* Department */}
 
               <div className="space-y-2">
-                <Label>
-                  Department
-                </Label>
+                <Label>Department</Label>
 
                 <Select
                   value={formData.department}
                   onValueChange={(value) =>
-                    updateField(
-                      "department",
-                      value ?? "",
-                    )
+                    updateField("department", value ?? "")
                   }
                   disabled={submitting}
                 >
@@ -281,25 +260,15 @@ const EmployeeDialog = ({
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="Management">
-                      Management
-                    </SelectItem>
+                    <SelectItem value="Management">Management</SelectItem>
 
-                    <SelectItem value="Merchandising">
-                      Merchandising
-                    </SelectItem>
+                    <SelectItem value="Merchandising">Merchandising</SelectItem>
 
-                    <SelectItem value="Quality">
-                      Quality
-                    </SelectItem>
+                    <SelectItem value="Quality">Quality</SelectItem>
 
-                    <SelectItem value="Accounts">
-                      Accounts
-                    </SelectItem>
+                    <SelectItem value="Accounts">Accounts</SelectItem>
 
-                    <SelectItem value="Admin">
-                      Admin
-                    </SelectItem>
+                    <SelectItem value="Admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -316,9 +285,7 @@ const EmployeeDialog = ({
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold">
-                Contact Information
-              </h3>
+              <h3 className="text-sm font-semibold">Contact Information</h3>
 
               <p className="text-xs text-muted-foreground">
                 Employee contact and emergency information.
@@ -329,74 +296,51 @@ const EmployeeDialog = ({
               {/* Phone */}
 
               <div className="space-y-2">
-                <Label htmlFor="phone">
-                  Phone
-                </Label>
+                <Label htmlFor="phone">Phone</Label>
 
                 <Input
                   id="phone"
                   placeholder="01XXXXXXXXX"
                   value={formData.phone}
-                  onChange={(e) =>
-                    updateField(
-                      "phone",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("phone", e.target.value)}
                   disabled={submitting}
                 />
 
                 {errors.phone && (
-                  <p className="text-sm text-destructive">
-                    {errors.phone}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.phone}</p>
                 )}
               </div>
 
               {/* Email */}
 
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email
-                </Label>
+                <Label htmlFor="email">Email</Label>
 
                 <Input
                   id="email"
                   type="email"
                   placeholder="employee@example.com"
                   value={formData.email}
-                  onChange={(e) =>
-                    updateField(
-                      "email",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("email", e.target.value)}
                   disabled={submitting}
                 />
 
                 {errors.email && (
-                  <p className="text-sm text-destructive">
-                    {errors.email}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.email}</p>
                 )}
               </div>
 
               {/* Emergency Contact */}
 
               <div className="space-y-2">
-                <Label htmlFor="emergencyContact">
-                  Emergency Contact
-                </Label>
+                <Label htmlFor="emergencyContact">Emergency Contact</Label>
 
                 <Input
                   id="emergencyContact"
                   placeholder="01XXXXXXXXX"
                   value={formData.emergencyContact}
                   onChange={(e) =>
-                    updateField(
-                      "emergencyContact",
-                      e.target.value,
-                    )
+                    updateField("emergencyContact", e.target.value)
                   }
                   disabled={submitting}
                 />
@@ -411,27 +355,18 @@ const EmployeeDialog = ({
               {/* Address */}
 
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="address">
-                  Address
-                </Label>
+                <Label htmlFor="address">Address</Label>
 
                 <Input
                   id="address"
                   placeholder="Employee address"
                   value={formData.address}
-                  onChange={(e) =>
-                    updateField(
-                      "address",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("address", e.target.value)}
                   disabled={submitting}
                 />
 
                 {errors.address && (
-                  <p className="text-sm text-destructive">
-                    {errors.address}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.address}</p>
                 )}
               </div>
             </div>
@@ -441,9 +376,7 @@ const EmployeeDialog = ({
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold">
-                Job Information
-              </h3>
+              <h3 className="text-sm font-semibold">Job Information</h3>
 
               <p className="text-xs text-muted-foreground">
                 Employment and salary information.
@@ -454,20 +387,13 @@ const EmployeeDialog = ({
               {/* Joining Date */}
 
               <div className="space-y-2">
-                <Label htmlFor="joiningDate">
-                  Joining Date
-                </Label>
+                <Label htmlFor="joiningDate">Joining Date</Label>
 
                 <Input
                   id="joiningDate"
                   type="date"
                   value={formData.joiningDate}
-                  onChange={(e) =>
-                    updateField(
-                      "joiningDate",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("joiningDate", e.target.value)}
                   disabled={submitting}
                 />
 
@@ -481,9 +407,7 @@ const EmployeeDialog = ({
               {/* Salary */}
 
               <div className="space-y-2">
-                <Label htmlFor="salary">
-                  Monthly Salary
-                </Label>
+                <Label htmlFor="salary">Monthly Salary</Label>
 
                 <Input
                   id="salary"
@@ -491,36 +415,24 @@ const EmployeeDialog = ({
                   min="0"
                   placeholder="0"
                   value={formData.salary}
-                  onChange={(e) =>
-                    updateField(
-                      "salary",
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => updateField("salary", e.target.value)}
                   disabled={submitting}
                 />
 
                 {errors.salary && (
-                  <p className="text-sm text-destructive">
-                    {errors.salary}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.salary}</p>
                 )}
               </div>
 
               {/* Status */}
 
               <div className="space-y-2">
-                <Label>
-                  Status
-                </Label>
+                <Label>Status</Label>
 
                 <Select
                   value={formData.status}
                   onValueChange={(value) =>
-                    updateField(
-                      "status",
-                      value ?? "ACTIVE",
-                    )
+                    updateField("status", value ?? "ACTIVE")
                   }
                   disabled={submitting}
                 >
@@ -529,46 +441,32 @@ const EmployeeDialog = ({
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="ACTIVE">
-                      Active
-                    </SelectItem>
+                    <SelectItem value="ACTIVE">Active</SelectItem>
 
-                    <SelectItem value="ON_LEAVE">
-                      On Leave
-                    </SelectItem>
+                    <SelectItem value="ON_LEAVE">On Leave</SelectItem>
 
-                    <SelectItem value="RESIGNED">
-                      Resigned
-                    </SelectItem>
+                    <SelectItem value="RESIGNED">Resigned</SelectItem>
 
-                    <SelectItem value="TERMINATED">
-                      Terminated
-                    </SelectItem>
+                    <SelectItem value="TERMINATED">Terminated</SelectItem>
                   </SelectContent>
                 </Select>
 
                 {errors.status && (
-                  <p className="text-sm text-destructive">
-                    {errors.status}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.status}</p>
                 )}
               </div>
             </div>
           </div>
 
           {serverError && (
-            <p className="text-sm text-destructive">
-              {serverError}
-            </p>
+            <p className="text-sm text-destructive">{serverError}</p>
           )}
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                handleDialogChange(false)
-              }
+              onClick={() => handleDialogChange(false)}
               disabled={submitting}
             >
               Cancel
@@ -580,8 +478,12 @@ const EmployeeDialog = ({
               disabled={submitting}
             >
               {submitting
-                ? "Adding..."
-                : "Add Employee"}
+                ? editingEmployee
+                  ? "Saving..."
+                  : "Adding..."
+                : editingEmployee
+                  ? "Save Changes"
+                  : "Add Employee"}
             </Button>
           </DialogFooter>
         </form>

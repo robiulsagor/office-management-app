@@ -218,3 +218,136 @@ export async function getEmployees() {
     };
   }
 }
+
+export async function updateEmployee(
+  empId: string,
+  data: unknown,
+) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      message: "Unauthorized.",
+    };
+  }
+
+  if (
+    session.user.role !== "ADMIN" &&
+    session.user.role !== "SUPER_ADMIN"
+  ) {
+    return {
+      success: false,
+      message: "You do not have permission to update employees.",
+    };
+  }
+
+  const parsed = createEmployeeSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message:
+        parsed.error.issues[0]?.message ??
+        "Invalid form data.",
+    };
+  }
+
+  const {
+    employeeId,
+    name,
+    designation,
+    department,
+    phone,
+    email,
+    joiningDate,
+    salary,
+    status,
+    address,
+    emergencyContact,
+  } = parsed.data;
+
+  try {
+    const existingEmployee =
+      await prisma.employee.findUnique({
+        where: {
+          id: empId,
+        },
+      });
+
+    if (!existingEmployee) {
+      return {
+        success: false,
+        message: "Employee not found.",
+      };
+    }
+
+    // Check employee code only if changed
+    if (employeeId !== existingEmployee.employeeCode) {
+      const duplicateEmployee =
+        await prisma.employee.findUnique({
+          where: {
+            employeeCode: employeeId,
+          },
+        });
+
+      if (duplicateEmployee) {
+        return {
+          success: false,
+          message: "Employee ID already exists.",
+        };
+      }
+    }
+
+    // Check email only if provided and changed
+    if (email && email !== existingEmployee.email) {
+      const duplicateEmail =
+        await prisma.employee.findFirst({
+          where: {
+            email,
+            NOT: {
+              id: empId,
+            },
+          },
+        });
+
+      if (duplicateEmail) {
+        return {
+          success: false,
+          message: "Employee email already exists.",
+        };
+      }
+    }
+
+    await prisma.employee.update({
+      where: {
+        id: empId,
+      },
+      data: {
+        employeeCode: employeeId,
+        name,
+        designation,
+        department: department || null,
+        phone: phone || null,
+        email: email || null,
+        joiningDate: new Date(joiningDate),
+        salary,
+        employmentStatus: status,
+        address: address || null,
+        emergencyContact: emergencyContact || null,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Employee updated successfully.",
+    };
+  } catch (error) {
+    console.error("Update employee error:", error);
+
+    return {
+      success: false,
+      message: "Failed to update employee.",
+    };
+  }
+}

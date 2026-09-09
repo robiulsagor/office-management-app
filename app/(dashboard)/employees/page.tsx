@@ -297,9 +297,11 @@ const Employees = () => {
       {/* ============================================ */}
 
       <EmployeeDialog
+        key={editingEmployee?.id ?? "new"}
         open={employeeDialogOpen}
         onOpenChange={setEmployeeDialogOpen}
         onEmployeeCreated={loadEmployees}
+        editingEmployee={editingEmployee}
       />
 
       {/* ============================================ */}
