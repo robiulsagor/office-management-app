@@ -1,31 +1,44 @@
-export type UserRole = "super_admin" | "admin" | "accounts" | "employee";
+export type UserRole =
+  | "SUPER_ADMIN"
+  | "ADMIN"
+  | "ACCOUNTS"
+  | "EMPLOYEE";
 
-export type AccountStatus = "active" | "frozen";
+export type AccountStatus =
+  | "ACTIVE"
+  | "FROZEN"
+  | "INACTIVE";
 
 export type EmploymentStatus =
-  | "active"
-  | "on_leave"
-  | "resigned"
-  | "terminated"
-  | "retired";
+  | "ACTIVE"
+  | "ON_LEAVE"
+  | "RESIGNED"
+  | "TERMINATED";
 
-export type UserAccount = {
+export type UserEmployee = {
+  id: string;
+  employeeCode: string;
+  name: string;
+  designation: string;
+  department: string | null;
+  employmentStatus: EmploymentStatus;
+};
+
+export type User = {
   id: string;
   employeeId: string;
-
-  employeeName: string;
-  designation: string;
-  department: string;
-
   username: string;
   email: string;
-
   role: UserRole;
   accountStatus: AccountStatus;
-  employmentStatus: EmploymentStatus;
 
-  lastLogin: string | null;
+  mustChangePassword: boolean;
+  passwordResetAt: string | null;
   passwordChangedAt: string | null;
 
+  lastLogin: string | null;
   createdAt: string;
+  updatedAt: string;
+
+  employee: UserEmployee;
 };

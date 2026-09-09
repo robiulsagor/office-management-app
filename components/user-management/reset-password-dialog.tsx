@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Eye, EyeOff } from "lucide-react";
 
 import {
@@ -16,10 +17,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { UserAccount } from "@/types/user";
+import type { User } from "@/types/user";
 
 type ResetPasswordDialogProps = {
-  user: UserAccount | null;
+  user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
@@ -41,7 +42,7 @@ const ResetPasswordDialog = ({
   if (!user) return null;
 
   const passwordsMatch =
-    password.length > 0 &&
+    password.length >= 6 &&
     password === confirmPassword;
 
   const handleSubmit = (
@@ -70,7 +71,10 @@ const ResetPasswordDialog = ({
 
           <DialogDescription>
             Set a new password for{" "}
-            <strong>{user.employeeName}</strong>.
+            <strong>
+              {user.employee.name}
+            </strong>
+            .
           </DialogDescription>
         </DialogHeader>
 
@@ -78,6 +82,7 @@ const ResetPasswordDialog = ({
           onSubmit={handleSubmit}
           className="space-y-5"
         >
+          {/* New Password */}
           <div className="space-y-2">
             <Label htmlFor="new-password">
               New Password
@@ -97,6 +102,7 @@ const ResetPasswordDialog = ({
                 }
                 placeholder="Enter new password"
                 className="pr-10"
+                minLength={6}
               />
 
               <Button
@@ -119,6 +125,7 @@ const ResetPasswordDialog = ({
             </div>
           </div>
 
+          {/* Confirm Password */}
           <div className="space-y-2">
             <Label htmlFor="confirm-password">
               Confirm Password
@@ -134,13 +141,15 @@ const ResetPasswordDialog = ({
                 )
               }
               placeholder="Confirm new password"
+              minLength={6}
             />
           </div>
 
           {confirmPassword &&
             !passwordsMatch && (
               <p className="text-sm text-destructive">
-                Passwords do not match.
+                Passwords must match and contain at
+                least 6 characters.
               </p>
             )}
 

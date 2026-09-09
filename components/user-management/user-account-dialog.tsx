@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
-
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 import {
   Select,
@@ -23,67 +23,80 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  AccountStatus,
-  EmploymentStatus,
-  UserAccount,
+import type {
+  User,
   UserRole,
+  AccountStatus,
 } from "@/types/user";
+import { updateUser } from "@/actions/user/user-actions";
+import toast from "react-hot-toast";
 
 type UserAccountDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingUser: UserAccount | null;
-  onSave: (user: UserAccount) => void;
+  editingUser: User | null;
+  onSuccess:(() => void) | undefined
 };
 
 const UserAccountDialog = ({
   open,
   onOpenChange,
   editingUser,
-  onSave,
+  onSuccess,
 }: UserAccountDialogProps) => {
+  const [username, setUsername] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
   const [role, setRole] =
-    useState<UserRole>("employee");
+    useState<UserRole>("EMPLOYEE");
 
   const [accountStatus, setAccountStatus] =
-    useState<AccountStatus>("active");
-
-  const [employmentStatus, setEmploymentStatus] =
-    useState<EmploymentStatus>("active");
+    useState<AccountStatus>("ACTIVE");
 
   useEffect(() => {
     if (!open || !editingUser) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUsername(editingUser.username);
+    setEmail(editingUser.email);
     setRole(editingUser.role);
-    setAccountStatus(editingUser.accountStatus);
-    setEmploymentStatus(
-      editingUser.employmentStatus,
+    setAccountStatus(
+      editingUser.accountStatus,
     );
   }, [open, editingUser]);
 
-  const handleSubmit = (
-    e: React.FormEvent,
-  ) => {
-    e.preventDefault();
+ const handleSubmit = async (
+  e: React.FormEvent,
+) => {
+  e.preventDefault();
 
-    if (!editingUser) {
-      // We are not creating a database user yet.
-      // This will be implemented when the backend exists.
-      onOpenChange(false);
-      return;
-    }
+  if (!editingUser) return;
 
-    onSave({
-      ...editingUser,
+  const result = await updateUser(
+    editingUser.id,
+    {
+      username: username.trim(),
+      email: email.trim(),
       role,
       accountStatus,
-      employmentStatus,
-    });
+    },
+  );
 
-    onOpenChange(false);
-  };
+  if (!result.success) {
+    // এখানে পরে toast দেখাব
+    toast.error(result.message || "Error updating user.");
+    console.error(result.message);
+    return;
+  }
+
+  onOpenChange(false);
+
+  // এখানে একটা refresh callback দরকার হবে
+  onSuccess?.()
+};
 
   return (
     <Dialog
@@ -93,15 +106,14 @@ const UserAccountDialog = ({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {editingUser
-              ? "Account Settings"
-              : "Add User"}
+            Account Settings
           </DialogTitle>
 
           <DialogDescription>
-            {editingUser
-              ? `Manage account access for ${editingUser.employeeName}.`
-              : "User creation will be connected to the employee database later."}
+            Manage account access for{" "}
+            {editingUser?.employee.name ??
+              "this user"}
+            .
           </DialogDescription>
         </DialogHeader>
 
@@ -110,25 +122,61 @@ const UserAccountDialog = ({
             onSubmit={handleSubmit}
             className="space-y-5"
           >
-            {/* Employee */}
+            {/* Employee Information */}
             <div className="rounded-lg border bg-muted/30 p-4">
               <p className="font-medium">
-                {editingUser.employeeName}
+                {editingUser.employee.name}
               </p>
 
               <p className="text-sm text-muted-foreground">
-                {editingUser.employeeId} ·{" "}
-                {editingUser.designation}
-              </p>
-
-              <p className="text-sm text-muted-foreground">
-                {editingUser.email}
+                {editingUser.employee.employeeCode}
+                {" · "}
+                {editingUser.employee.designation}
               </p>
             </div>
 
-            {/* Role */}
+            {/* Username */}
             <div className="space-y-2">
-              <Label>System Role</Label>
+              <Label htmlFor="username">
+                Username
+              </Label>
+
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) =>
+                  setUsername(e.target.value)
+                }
+                placeholder="Enter username"
+                required
+                minLength={3}
+                maxLength={50}
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">
+                Email
+              </Label>
+
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+
+            {/* System Role */}
+            <div className="space-y-2">
+              <Label>
+                System Role
+              </Label>
 
               <Select
                 value={role}
@@ -141,19 +189,19 @@ const UserAccountDialog = ({
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="super_admin">
+                  <SelectItem value="SUPER_ADMIN">
                     Super Admin
                   </SelectItem>
 
-                  <SelectItem value="admin">
+                  <SelectItem value="ADMIN">
                     Admin
                   </SelectItem>
 
-                  <SelectItem value="accounts">
+                  <SelectItem value="ACCOUNTS">
                     Accounts
                   </SelectItem>
 
-                  <SelectItem value="employee">
+                  <SelectItem value="EMPLOYEE">
                     Employee
                   </SelectItem>
                 </SelectContent>
@@ -162,7 +210,9 @@ const UserAccountDialog = ({
 
             {/* Account Status */}
             <div className="space-y-2">
-              <Label>Account Status</Label>
+              <Label>
+                Account Status
+              </Label>
 
               <Select
                 value={accountStatus}
@@ -177,59 +227,44 @@ const UserAccountDialog = ({
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="active">
+                  <SelectItem value="ACTIVE">
                     Active
                   </SelectItem>
 
-                  <SelectItem value="frozen">
+                  <SelectItem value="FROZEN">
                     Frozen
+                  </SelectItem>
+
+                  <SelectItem value="INACTIVE">
+                    Inactive
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Employment Status */}
+            {/* Employment Status - Read Only */}
             <div className="space-y-2">
               <Label>
                 Employment Status
               </Label>
 
-              <Select
-                value={employmentStatus}
-                onValueChange={(value) =>
-                  setEmploymentStatus(
-                    value as EmploymentStatus,
-                  )
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+              <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                {editingUser.employee.employmentStatus
+                  .replace("_", " ")
+                  .replace(
+                    /^\w/,
+                    (char) =>
+                      char.toUpperCase(),
+                  )}
+              </div>
 
-                <SelectContent>
-                  <SelectItem value="active">
-                    Active
-                  </SelectItem>
-
-                  <SelectItem value="on_leave">
-                    On Leave
-                  </SelectItem>
-
-                  <SelectItem value="resigned">
-                    Resigned
-                  </SelectItem>
-
-                  <SelectItem value="terminated">
-                    Terminated
-                  </SelectItem>
-
-                  <SelectItem value="retired">
-                    Retired
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <p className="text-xs text-muted-foreground">
+                Employment status is managed
+                from the Employee page.
+              </p>
             </div>
 
+            {/* Footer */}
             <DialogFooter>
               <Button
                 type="button"

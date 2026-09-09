@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   MoreHorizontal,
   KeyRound,
@@ -29,40 +31,122 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 
-import { UserAccount } from "@/types/user";
+import type { User } from "@/types/user";
+
+import UserAccountDialog from "@/components/user-management/user-account-dialog";
+import ResetPasswordDialog from "@/components/user-management/reset-password-dialog";
+import FreezeAccountDialog from "@/components/user-management/freeze-account-dialog";
 
 type UserManagementTableProps = {
-  users: UserAccount[];
-  onEdit: (user: UserAccount) => void;
-  onResetPassword: (user: UserAccount) => void;
-  onToggleFreeze: (user: UserAccount) => void;
+  users: User[];
+  onUsersChanged?: () => void;
 };
 
-const roleLabel = (role: UserAccount["role"]) => {
+const roleLabel = (role: User["role"]) => {
   switch (role) {
-    case "super_admin":
+    case "SUPER_ADMIN":
       return "Super Admin";
-    case "admin":
+
+    case "ADMIN":
       return "Admin";
-    case "accounts":
+
+    case "ACCOUNTS":
       return "Accounts";
-    default:
+
+    case "EMPLOYEE":
       return "Employee";
+
+    default:
+      return role;
   }
+};
+
+const formatEmploymentStatus = (
+  status: User["employee"]["employmentStatus"],
+) => {
+  return status.replace("_", " ").replace(/^\w/, (char) => char.toUpperCase());
+};
+
+const formatLastLogin = (lastLogin: User["lastLogin"]) => {
+  if (!lastLogin) {
+    return {
+      date: "Never",
+      time: null,
+    };
+  }
+
+  const loginDate = new Date(lastLogin);
+  const now = new Date();
+
+  const isToday = loginDate.toDateString() === now.toDateString();
+
+  const yesterday = new Date(now);
+
+  yesterday.setDate(now.getDate() - 1);
+
+  const isYesterday = loginDate.toDateString() === yesterday.toDateString();
+
+  const time = loginDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  if (isToday) {
+    return {
+      date: "Today",
+      time,
+    };
+  }
+
+  if (isYesterday) {
+    return {
+      date: "Yesterday",
+      time,
+    };
+  }
+
+  return {
+    date: loginDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time,
+  };
 };
 
 const UserManagementTable = ({
   users,
-  onEdit,
-  onResetPassword,
-  onToggleFreeze,
+  onUsersChanged,
 }: UserManagementTableProps) => {
+  // ==========================================
+  // Dialog selected users
+  // ==========================================
+
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+
+  const [freezeUser, setFreezeUser] = useState<User | null>(null);
+
+  // ==========================================
+  // Dialog open states
+  // ==========================================
+
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+
+  const [freezeDialogOpen, setFreezeDialogOpen] = useState(false);
+
+  // ==========================================
+  // Empty state
+  // ==========================================
+
   if (users.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="font-medium">
-          No users found
-        </p>
+        <p className="font-medium">No users found</p>
 
         <p className="mt-1 text-sm text-muted-foreground">
           Try changing your search or filters.
@@ -72,139 +156,205 @@ const UserManagementTable = ({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Employee</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Account</TableHead>
-            <TableHead>Last Login</TableHead>
-            <TableHead className="w-12" />
-          </TableRow>
-        </TableHeader>
+    <>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Employee</TableHead>
 
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>
-                <div>
-                  <p className="font-medium">
-                    {user.employeeName}
-                  </p>
+              <TableHead>Username</TableHead>
 
-                  <p className="text-xs text-muted-foreground">
-                    {user.employeeId} ·{" "}
-                    {user.designation}
-                  </p>
-                </div>
-              </TableCell>
+              <TableHead>Role</TableHead>
 
-              <TableCell>
-                {user.department}
-              </TableCell>
+              <TableHead>Account</TableHead>
 
-              <TableCell>
-                <Badge variant="outline">
-                  {roleLabel(user.role)}
-                </Badge>
-              </TableCell>
+              <TableHead>Last Login</TableHead>
 
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  <Badge
-                    variant={
-                      user.accountStatus ===
-                      "active"
-                        ? "default"
-                        : "destructive"
-                    }
-                    className="w-fit"
-                  >
-                    {user.accountStatus ===
-                    "active"
-                      ? "Active"
-                      : "Frozen"}
-                  </Badge>
-
-                  {user.employmentStatus !==
-                    "active" && (
-                    <span className="text-xs text-muted-foreground">
-                      {user.employmentStatus
-                        .replace("_", " ")
-                        .replace(
-                          /^\w/,
-                          (c) => c.toUpperCase(),
-                        )}
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-
-              <TableCell>
-                <span className="text-sm">
-                  {user.lastLogin ?? "Never"}
-                </span>
-              </TableCell>
-
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => onEdit(user)}
-                    >
-                      <Pencil className="mr-2 size-4" />
-                      Account Settings
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() =>
-                        onResetPassword(user)
-                      }
-                    >
-                      <KeyRound className="mr-2 size-4" />
-                      Reset Password
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      onClick={() =>
-                        onToggleFreeze(user)
-                      }
-                    >
-                      {user.accountStatus ===
-                      "active" ? (
-                        <>
-                          <Snowflake className="mr-2 size-4" />
-                          Freeze Account
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="mr-2 size-4" />
-                          Unfreeze Account
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+              <TableHead className="w-12" />
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+
+          <TableBody>
+            {users.map((user) => {
+              const lastLogin = formatLastLogin(user.lastLogin);
+
+              return (
+                <TableRow key={user.id}>
+                  {/* Employee */}
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{user.employee.name}</p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {user.employee.employeeCode}
+                        {" · "}
+                        {user.employee.designation}
+                      </p>
+                    </div>
+                  </TableCell>
+
+                  {/* Username */}
+                  <TableCell>
+                    <span className="font-medium text-sm">{user.username}</span>
+                  </TableCell>
+
+                  {/* Role */}
+                  <TableCell>
+                    <Badge variant="outline">{roleLabel(user.role)}</Badge>
+                  </TableCell>
+
+                  {/* Account Status */}
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <Badge
+                        variant={
+                          user.accountStatus === "ACTIVE"
+                            ? "default"
+                            : "destructive"
+                        }
+                        className="w-fit"
+                      >
+                        {user.accountStatus === "ACTIVE"
+                          ? "Active"
+                          : user.accountStatus === "FROZEN"
+                            ? "Frozen"
+                            : "Inactive"}
+                      </Badge>
+
+                      {user.employee.employmentStatus !== "ACTIVE" && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatEmploymentStatus(
+                            user.employee.employmentStatus,
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  {/* Last Login */}
+                  <TableCell>
+                    {lastLogin.time ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {lastLogin.date}
+                        </span>
+
+                        <span className="text-xs text-muted-foreground">
+                          {lastLogin.time}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Never
+                      </span>
+                    )}
+                  </TableCell>
+
+                  {/* Actions */}
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end">
+                        {/* Account Settings */}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditingUser(user);
+                            setUserDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="mr-2 size-4" />
+                          Account Settings
+                        </DropdownMenuItem>
+
+                        {/* Reset Password */}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setResetPasswordUser(user);
+                            setResetPasswordDialogOpen(true);
+                          }}
+                        >
+                          <KeyRound className="mr-2 size-4" />
+                          Reset Password
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
+                        {/* Freeze / Unfreeze */}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setFreezeUser(user);
+                            setFreezeDialogOpen(true);
+                          }}
+                        >
+                          {user.accountStatus === "ACTIVE" ? (
+                            <>
+                              <Snowflake className="mr-2 size-4" />
+                              Freeze Account
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="mr-2 size-4" />
+                              Unfreeze Account
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* ======================================
+          Account Settings Dialog
+          ====================================== */}
+
+      <UserAccountDialog
+        open={userDialogOpen}
+        onOpenChange={setUserDialogOpen}
+        editingUser={editingUser}
+        onSuccess={onUsersChanged}
+      />
+
+      {/* ======================================
+          Reset Password Dialog
+          ====================================== */}
+
+      <ResetPasswordDialog
+        user={resetPasswordUser}
+        open={resetPasswordDialogOpen}
+        onOpenChange={setResetPasswordDialogOpen}
+        onConfirm={() => {
+          console.log("Reset password:", resetPasswordUser?.id);
+
+          onUsersChanged?.();
+        }}
+      />
+
+      {/* ======================================
+          Freeze Account Dialog
+          ====================================== */}
+
+      <FreezeAccountDialog
+        user={freezeUser}
+        open={freezeDialogOpen}
+        onOpenChange={setFreezeDialogOpen}
+        onConfirm={() => {
+          console.log("Toggle freeze:", freezeUser?.id);
+
+          onUsersChanged?.();
+        }}
+      />
+    </>
   );
 };
 

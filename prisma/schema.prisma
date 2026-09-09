@@ -57,7 +57,6 @@ model Employee {
   @@index([employmentStatus])
   @@index([department])
 }
-
 model User {
   id                         String     @id @default(cuid())
   employeeId                 String     @unique
@@ -66,15 +65,51 @@ model User {
   passwordHash               String
   role                       Role       @default(EMPLOYEE)
   accountStatus              AccountStatus @default(ACTIVE)
+
+  mustChangePassword         Boolean    @default(false)
+  passwordResetAt            DateTime?
+  passwordChangedAt          DateTime?
+
   lastLogin                  DateTime?
 
   employee                   Employee @relation(fields: [employeeId], references: [id])
+
   bazarEntries               BazarEntry[]
   conveyanceRecords          ConveyanceRecord[]
   monthlyConveyanceApprovals MonthlyConveyanceApproval[]
 
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  passwordResetRequests      PasswordResetRequest[]
+
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+}
+
+enum PasswordResetRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PasswordResetSource {
+  USER_REQUEST
+  ADMIN_DIRECT
+}
+
+model PasswordResetRequest {
+  id          String                    @id @default(cuid())
+  userId      String
+  requestedAt DateTime                  @default(now())
+  status      PasswordResetRequestStatus @default(PENDING)
+  source      PasswordResetSource       @default(USER_REQUEST)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
 }
 
 enum BazarUnit {

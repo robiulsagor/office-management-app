@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-} from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 import {
   Alert,
@@ -21,10 +19,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { UserAccount } from "@/types/user";
+import type { User } from "@/types/user";
 
 type FreezeAccountDialogProps = {
-  user: UserAccount | null;
+  user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
@@ -39,7 +37,7 @@ const FreezeAccountDialog = ({
   if (!user) return null;
 
   const isFrozen =
-    user.accountStatus === "frozen";
+    user.accountStatus === "FROZEN";
 
   return (
     <Dialog
@@ -56,8 +54,8 @@ const FreezeAccountDialog = ({
 
           <DialogDescription>
             {isFrozen
-              ? `Allow ${user.employeeName} to access the platform again.`
-              : `Prevent ${user.employeeName} from logging into the platform.`}
+              ? `Allow ${user.employee.name} to access the platform again.`
+              : `Prevent ${user.employee.name} from logging into the platform.`}
           </DialogDescription>
         </DialogHeader>
 
