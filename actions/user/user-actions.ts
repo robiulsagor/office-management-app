@@ -42,8 +42,6 @@ export async function getUsers() {
       role: user.role,
       accountStatus: user.accountStatus,
 
-      mustChangePassword: user.mustChangePassword,
-      passwordResetAt: user.passwordResetAt?.toISOString() ?? null,
       passwordChangedAt: user.passwordChangedAt?.toISOString() ?? null,
 
       lastLogin: user.lastLogin?.toISOString() ?? null,

@@ -32,8 +32,6 @@ export type User = {
   role: UserRole;
   accountStatus: AccountStatus;
 
-  mustChangePassword: boolean;
-  passwordResetAt: string | null;
   passwordChangedAt: string | null;
 
   lastLogin: string | null;

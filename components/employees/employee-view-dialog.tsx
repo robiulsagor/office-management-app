@@ -44,18 +44,18 @@ const ViewEmployeeDialog = ({
               <h3 className="text-lg font-semibold">{employee.name}</h3>
 
               <p className="text-sm text-muted-foreground">
-                {employee.employeeId}
+                {employee.employeeCode || "—"}
               </p>
             </div>
 
             <Badge
               className={
-                employee.status === "Active"
+                employee.employmentStatus === "ACTIVE"
                   ? "ml-auto bg-green-100 text-green-700 hover:bg-green-100"
                   : "ml-auto bg-slate-100 text-slate-600 hover:bg-slate-100"
               }
             >
-              {employee.status}
+              {employee.employmentStatus}
             </Badge>
           </div>
 

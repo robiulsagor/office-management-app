@@ -115,30 +115,6 @@ const formatLastLogin = (lastLogin: User["lastLogin"]) => {
   };
 };
 
-const PASSWORD_STATUS_WINDOW = 3 * 60 * 60 * 1000;
-
-const getPasswordStatus = (user: User) => {
-  if (!user.passwordResetAt) {
-    return "none";
-  }
-
-  if (!user.passwordChangedAt) {
-    return "pending";
-  }
-
-  const resetAt = new Date(user.passwordResetAt).getTime();
-
-  const changedAt = new Date(user.passwordChangedAt).getTime();
-
-  const expiresAt = resetAt + PASSWORD_STATUS_WINDOW;
-
-  if (changedAt >= resetAt && changedAt <= expiresAt) {
-    return "changed";
-  }
-
-  return "expired";
-};
-
 const UserManagementTable = ({
   users,
   onUsersChanged,
@@ -201,7 +177,6 @@ const UserManagementTable = ({
 
           <TableBody>
             {users.map((user) => {
-              const passwordStatus = getPasswordStatus(user);
               const lastLogin = formatLastLogin(user.lastLogin);
 
               return (
@@ -255,20 +230,7 @@ const UserManagementTable = ({
                         </span>
                       )}
                     </div>
-                    <div className="space-y-1">
-                      {passwordStatus === "changed" && (
-                        <div className="flex items-center gap-1.5 text-xs text-green-600">
-                          <span className="size-1.5 rounded-full bg-green-500" />
-                          Password changed
-                        </div>
-                      )}
-
-                      {passwordStatus === "pending" && (
-                        <div className="text-xs text-muted-foreground">
-                          User hasn&quot;t changed password yet
-                        </div>
-                      )}
-                    </div>
+                    
                   </TableCell>
 
                   {/* Last Login */}

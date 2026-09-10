@@ -61,6 +61,7 @@ export async function setupAdmin(data: unknown) {
           designation: "Administrator",
           joiningDate: new Date(),
           employmentStatus: "ACTIVE",
+          salary: 0
         },
       });
 

@@ -207,6 +207,58 @@ export async function generatePasswordResetLink(
   }
 }
 
+export async function validatePasswordResetToken(token: string) {
+  if (!token) {
+    return {
+      success: false,
+      message: "Invalid Reset Link.",
+    };
+  }
+
+  try {
+    const tokenHash = hashToken(token);
+
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: {
+        tokenHash,
+      },
+    });
+
+    if (!resetToken) {
+      return {
+        success: false,
+        message: "This password reset link is invalid.",
+      };
+    }
+
+    if (resetToken.usedAt) {
+      return {
+        success: false,
+        message: "This password reset link has already been used.",
+      };
+    }
+
+    if (resetToken.expiresAt <= new Date()) {
+      return {
+        success: false,
+        message: "This password reset link has expired.",
+      };
+    }
+
+    return {
+      success: true,
+      expiresAt: resetToken.expiresAt.toISOString(),
+    };
+  } catch (error) {
+    console.error("Validate password reset token error:", error);
+
+    return {
+      success: false,
+      message: "Failed to validate password reset link.",
+    };
+  }
+}
+
 export async function changePasswordWithToken(
   token: string,
   newPassword: string,
