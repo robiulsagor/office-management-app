@@ -57,6 +57,7 @@ model Employee {
   @@index([employmentStatus])
   @@index([department])
 }
+
 model User {
   id                         String     @id @default(cuid())
   employeeId                 String     @unique
@@ -65,25 +66,19 @@ model User {
   passwordHash               String
   role                       Role       @default(EMPLOYEE)
   accountStatus              AccountStatus @default(ACTIVE)
-
-  mustChangePassword         Boolean    @default(false)
-  passwordResetAt            DateTime?
   passwordChangedAt          DateTime?
-
   lastLogin                  DateTime?
 
   employee                   Employee @relation(fields: [employeeId], references: [id])
-
   bazarEntries               BazarEntry[]
   conveyanceRecords          ConveyanceRecord[]
   monthlyConveyanceApprovals MonthlyConveyanceApproval[]
-
   passwordResetRequests      PasswordResetRequest[]
+  passwordResetTokens        PasswordResetToken[]
 
   createdAt                  DateTime   @default(now())
   updatedAt                  DateTime   @updatedAt
 }
-
 enum PasswordResetRequestStatus {
   PENDING
   APPROVED
@@ -97,11 +92,11 @@ enum PasswordResetSource {
 }
 
 model PasswordResetRequest {
-  id          String                    @id @default(cuid())
+  id          String                     @id @default(cuid())
   userId      String
-  requestedAt DateTime                  @default(now())
+  requestedAt DateTime                   @default(now())
   status      PasswordResetRequestStatus @default(PENDING)
-  source      PasswordResetSource       @default(USER_REQUEST)
+  source      PasswordResetSource        @default(USER_REQUEST)
   resolvedAt  DateTime?
   resolvedBy  String?
 
@@ -110,6 +105,20 @@ model PasswordResetRequest {
   @@index([userId])
   @@index([status])
   @@index([requestedAt])
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 enum BazarUnit {

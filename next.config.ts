@@ -7,6 +7,7 @@
 // export default nextConfig;
 
 module.exports = {
+  allowedDevOrigins: ['192.168.0.21'],
   images: {
     remotePatterns: [
       {

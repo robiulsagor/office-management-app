@@ -5,16 +5,23 @@ import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
-  
+
   providers: [
     Credentials({
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
-        password: { label: "Password", type: "password" },
+        username: {
+          label: "Username",
+          type: "text",
+          placeholder: "jsmith",
+        },
+        password: {
+          label: "Password",
+          type: "password",
+        },
       },
 
       async authorize(credentials) {
-        if (!credentials.password || !credentials.username) {
+        if (!credentials?.password || !credentials?.username) {
           return null;
         }
 
@@ -38,7 +45,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        const passwordMatch = await bcrypt.compare(
+          password,
+          user.passwordHash,
+        );
 
         if (!passwordMatch) {
           return null;
@@ -50,7 +60,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           username: user.username,
           role: user.role,
           employeeId: user.employeeId,
-           mustChangePassword: user.mustChangePassword,
         };
       },
     }),
@@ -67,7 +76,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.username = user.username;
         token.role = user.role;
         token.employeeId = user.employeeId;
-        token.mustChangePassword = user.mustChangePassword;
       }
 
       return token;
@@ -79,11 +87,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.username = token.username as string;
         session.user.role = token.role as string;
         session.user.employeeId = token.employeeId as string;
-        session.user.mustChangePassword =
-      token.mustChangePassword as boolean;
       }
 
       return session;
     },
-  } 
+  },
 });
