@@ -114,6 +114,53 @@ const formatLastLogin = (lastLogin: User["lastLogin"]) => {
     time,
   };
 };
+const formatActive = (lastActive: User["lastActive"]) => {
+  if (!lastActive) {
+    return {
+      date: "Never",
+      time: null,
+    };
+  }
+
+  const activeDate = new Date(lastActive);
+  const now = new Date();
+
+  const isToday = activeDate.toDateString() === now.toDateString();
+
+  const yesterday = new Date(now);
+
+  yesterday.setDate(now.getDate() - 1);
+
+  const isYesterday = activeDate.toDateString() === yesterday.toDateString();
+
+  const time = activeDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  if (isToday) {
+    return {
+      date: "Today",
+      time,
+    };
+  }
+
+  if (isYesterday) {
+    return {
+      date: "Yesterday",
+      time,
+    };
+  }
+
+  return {
+    date: activeDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time,
+  };
+};
 
 const UserManagementTable = ({
   users,
@@ -170,6 +217,7 @@ const UserManagementTable = ({
               <TableHead>Account</TableHead>
 
               <TableHead>Last Login</TableHead>
+              <TableHead>Last Active</TableHead>
 
               <TableHead className="w-12" />
             </TableRow>
@@ -178,6 +226,7 @@ const UserManagementTable = ({
           <TableBody>
             {users.map((user) => {
               const lastLogin = formatLastLogin(user.lastLogin);
+              const lastActive = formatActive(user.lastActive);
 
               return (
                 <TableRow key={user.id}>
@@ -243,6 +292,25 @@ const UserManagementTable = ({
 
                         <span className="text-xs text-muted-foreground">
                           {lastLogin.time}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Never
+                      </span>
+                    )}
+                  </TableCell>
+
+                  {/* Last active */}
+                  <TableCell>
+                    {lastActive.time ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {lastActive.date}
+                        </span>
+
+                        <span className="text-xs text-muted-foreground">
+                          {lastActive.time}
                         </span>
                       </div>
                     ) : (

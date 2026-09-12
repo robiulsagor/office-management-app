@@ -68,6 +68,7 @@ model User {
   accountStatus              AccountStatus @default(ACTIVE)
   passwordChangedAt          DateTime?
   lastLogin                  DateTime?
+  lastActive                 DateTime?
 
   employee                   Employee @relation(fields: [employeeId], references: [id])
   bazarEntries               BazarEntry[]
