@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Dialog,
@@ -60,10 +61,17 @@ const EmployeeDialog = ({
   onEmployeeCreated,
   editingEmployee,
 }: EmployeeDialogProps) => {
- const [formData, setFormData] =
-  useState<CreateEmployeeFormData>(() => {
+  const [serverError, setServerError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CreateEmployeeFormData, string>>
+  >({});
+
+  const [formData, setFormData] = useState<CreateEmployeeFormData>(emptyForm);
+
+  useEffect(() => {
     if (editingEmployee) {
-      return {
+      setFormData({
         employeeId: editingEmployee.employeeCode,
         name: editingEmployee.name,
         designation: editingEmployee.designation,
@@ -75,19 +83,14 @@ const EmployeeDialog = ({
         status: editingEmployee.employmentStatus,
         address: editingEmployee.address ?? "",
         emergencyContact: editingEmployee.emergencyContact ?? "",
-      };
+      });
+    } else {
+      setFormData(emptyForm);
     }
 
-    return emptyForm;
-  });
-
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof CreateEmployeeFormData, string>>
-  >({});
-
-  const [serverError, setServerError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
+    setErrors({});
+    setServerError("");
+  }, [editingEmployee]);
 
   const updateField = (field: keyof CreateEmployeeFormData, value: string) => {
     setFormData((prev) => ({
