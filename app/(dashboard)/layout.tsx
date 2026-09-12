@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import ActivityTracker from "@/components/auth/activity-tracker";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { redirect } from "next/navigation";
@@ -16,6 +17,8 @@ export default async function RootLayout({
   }
 
   return (
+    <>
+      <ActivityTracker />
       <main className="h-screen bg-slate-200 p-3 w-full md:flex md:gap-3 border ">
         <Sidebar />
         <div className=" flex-1 w-full">
@@ -25,5 +28,6 @@ export default async function RootLayout({
           </div>
         </div>
       </main>
+    </>
   );
 }

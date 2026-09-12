@@ -43,8 +43,10 @@ export async function getUsers() {
       accountStatus: user.accountStatus,
 
       passwordChangedAt: user.passwordChangedAt?.toISOString() ?? null,
-
+      
       lastLogin: user.lastLogin?.toISOString() ?? null,
+      lastActive: user.lastActive?.toISOString() ?? null,
+
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
 

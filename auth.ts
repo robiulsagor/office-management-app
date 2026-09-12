@@ -45,14 +45,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const passwordMatch = await bcrypt.compare(
-          password,
-          user.passwordHash,
-        );
+        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
 
         if (!passwordMatch) {
           return null;
         }
+
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            lastLogin: new Date(),
+            lastActive: new Date(),
+          },
+        });
 
         return {
           id: user.id,

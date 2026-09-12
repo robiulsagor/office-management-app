@@ -35,6 +35,7 @@ export type User = {
   passwordChangedAt: string | null;
 
   lastLogin: string | null;
+  lastActive: string | null;
   createdAt: string;
   updatedAt: string;
 
