@@ -22,7 +22,7 @@ export default function ActivityTracker() {
     // Then every 5 minutes
     const interval = setInterval(
       sendHeartbeat,
-      1 * 60 * 1000
+      5 * 60 * 1000
     );
 
     return () => {

@@ -27,7 +27,7 @@ export async function POST() {
 
     if (
       !user?.lastActive ||
-      now.getTime() - user.lastActive.getTime() >= 1 * 60 * 1000
+      now.getTime() - user.lastActive.getTime() >= 4 * 60 * 1000
     ) {
       await prisma.user.update({
         where: {
