@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import ActivityTracker from "@/components/auth/activity-tracker";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import SessionProviderWrapper from "@/components/providers/SessionProvider";
 import { redirect } from "next/navigation";
 
 export default async function RootLayout({
@@ -17,7 +18,8 @@ export default async function RootLayout({
   }
 
   return (
-    <>
+    <SessionProviderWrapper>
+
       <ActivityTracker />
       <main className="h-screen bg-slate-200 p-3 w-full md:flex md:gap-3 border ">
         <Sidebar />
@@ -28,6 +30,6 @@ export default async function RootLayout({
           </div>
         </div>
       </main>
-    </>
+    </SessionProviderWrapper>
   );
 }

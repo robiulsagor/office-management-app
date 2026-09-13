@@ -11,11 +11,16 @@ import {
 } from "@/components/ui/popover";
 import { useDesktopNav, useMobileNav } from "@/store";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 const Navbar = () => {
   const openNav = useMobileNav((state) => state.open);
   const toggleDesktopNav = useDesktopNav((state) => state.toggle);
   const showSidebar = useDesktopNav((state) => state.isOpen);
+
+  const {data: session} = useSession();
+
+  console.log(session);
 
   return (
     <div className="bg-slate-50 p-3 rounded-tl-lg rounded-tr-lg shadow-2xl border-b">
@@ -61,13 +66,15 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-2">
             <Image
-              src="https://avatars.githubusercontent.com/u/12345678?v=4"
+              src="https://avatars.githubusercontent.com/u/12345679?v=4"
               alt="User Avatar"
               className="w-8 h-8 rounded-full"
               width="30"
               height="30"
             />
-            <span className="text-sm font-medium text-slate-700">John Doe</span>
+            <span className="text-sm font-medium text-slate-700">
+              {session?.user?.name || "Guest"}
+            </span>
           </div>
         </div>
       </div>
