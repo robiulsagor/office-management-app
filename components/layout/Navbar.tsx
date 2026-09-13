@@ -20,8 +20,6 @@ const Navbar = () => {
 
   const {data: session} = useSession();
 
-  console.log(session);
-
   return (
     <div className="bg-slate-50 p-3 rounded-tl-lg rounded-tr-lg shadow-2xl border-b">
       <div className="flex items-center justify-between">
