@@ -7,26 +7,47 @@ export async function POST() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const userId = session.user.id;
-
     const now = new Date();
 
-    // Only update the database if the previous activity
-    // was more than 4 minutes ago.
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
       select: {
+        accountStatus: true,
         lastActive: true,
       },
     });
 
+    if (!user) {
+      return NextResponse.json(
+        { message: "User not found" },
+        { status: 401 },
+      );
+    }
+
+    // User has been frozen or deactivated
+    if (user.accountStatus !== "ACTIVE") {
+      return NextResponse.json(
+        {
+          message: "ACCOUNT_NOT_ACTIVE",
+          accountStatus: user.accountStatus,
+        },
+        { status: 403 },
+      );
+    }
+
+    // Only update lastActive if the previous activity
+    // was more than 4 minutes ago.
     if (
-      !user?.lastActive ||
+      !user.lastActive ||
       now.getTime() - user.lastActive.getTime() >= 4 * 60 * 1000
     ) {
       await prisma.user.update({

@@ -17,19 +17,21 @@ export default async function RootLayout({
     redirect("/login")
   }
 
-  return (
-    <SessionProviderWrapper>
+ return (
+  <SessionProviderWrapper>
+    <ActivityTracker />
 
-      <ActivityTracker />
-      <main className="h-screen bg-slate-200 p-3 w-full md:flex md:gap-3 border ">
-        <Sidebar />
-        <div className=" flex-1 w-full">
-          <Navbar />
-          <div className="w-full flex-1 bg-slate-50 shadow-xl rounded-bl-lg rounded-br-lg p-5 max-h-[calc(100vh-85px)] overflow-y-auto">
-            {children}
-          </div>
+    <main className="h-screen bg-slate-200 p-3 w-full md:flex md:gap-1.5 border">
+      <Sidebar />
+
+      <div className="flex-1 w-full h-full flex flex-col">
+        <Navbar />
+
+        <div className="w-full flex-1 bg-slate-50 shadow-xl rounded-bl-lg rounded-br-lg p-5 overflow-y-auto">
+          {children}
         </div>
-      </main>
-    </SessionProviderWrapper>
-  );
+      </div>
+    </main>
+  </SessionProviderWrapper>
+);
 }

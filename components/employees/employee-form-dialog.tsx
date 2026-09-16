@@ -70,6 +70,8 @@ const EmployeeDialog = ({
   const [formData, setFormData] = useState<CreateEmployeeFormData>(emptyForm);
 
   useEffect(() => {
+    if (!open) return;
+
     if (editingEmployee) {
       setFormData({
         employeeId: editingEmployee.employeeCode,
@@ -90,7 +92,7 @@ const EmployeeDialog = ({
 
     setErrors({});
     setServerError("");
-  }, [editingEmployee]);
+  }, [editingEmployee, open]);
 
   const updateField = (field: keyof CreateEmployeeFormData, value: string) => {
     setFormData((prev) => ({

@@ -1,5 +1,6 @@
 "use server";
 
+import { requireActiveUser } from "@/lib/auth/require-active-user";
 import { prisma } from "@/lib/prisma";
 import { BazarEntry } from "@/types/bazar";
 
@@ -11,6 +12,15 @@ export async function getBazarEntries(
   data: BazarEntry[];
 }> {
   try {
+     const authResult = await requireActiveUser();
+
+    if (!authResult.ok) {
+      return {
+        success: false,
+        message: authResult.message,
+        data: [],
+      };
+    }
     const [year, monthNumber] = month.split("-").map(Number);
 
     if (!year || !monthNumber) {
