@@ -58,6 +58,9 @@ const BazarItemTable = ({ entries, selectedItem, language }: BazarItemTableProps
               <tr key={entry.id} className="align-top hover:bg-slate-50/70">
                 <td className="px-6 py-4 text-sm font-medium">
                   {formatDate(entry.date)}
+                  
+                    {entry.type === "REGULAR" ? "" : <span className="ml-1 text-xs font-normal text-muted-foreground bg-purple-700/20 rounded-full px-2.5">({entry.type})</span>}
+                  
                 </td>
 
                 <td className="px-6 py-4">

@@ -32,6 +32,7 @@ const BazarFilters = ({
           variant={mode === "day-wise" ? "default" : "ghost"}
           size="sm"
           onClick={() => onModeChange("day-wise")}
+          className={mode === "day-wise" ? "" : "cursor-pointer"}
         >
           <Rows3 className="mr-2 size-4" />
           Day Wise
@@ -42,6 +43,7 @@ const BazarFilters = ({
           variant={mode === "item-wise" ? "default" : "ghost"}
           size="sm"
           onClick={() => onModeChange("item-wise")}
+          className={mode === "item-wise" ? "" : "cursor-pointer"}
         >
           <List className="mr-2 size-4" />
           Item Wise
