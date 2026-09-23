@@ -16,42 +16,35 @@ export async function setupAdmin(data: unknown) {
 
   const { fullName, username, email, password } = parsed.data;
 
-  //    check if user already exists
-  const existingAdmin = await prisma.user.findFirst({
-    where: {
-      role: {
-        in: ["ADMIN", "SUPER_ADMIN"],
-      },
-    },
-  });
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Initial setup is allowed only when no user exists.
+      const existingUser = await tx.user.findFirst();
 
-  if (existingAdmin) {
-    return {
-      success: false,
-      message: "Setup has already been completed.",
-      user: existingAdmin,
-    };
-  }
+      if (existingUser) {
+        throw new Error("SETUP_ALREADY_COMPLETED");
+      }
 
-  //   check if username already exists
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      username,
-    },
-  });
+      // Check username
+      const existingUsername = await tx.user.findUnique({
+        where: { username },
+      });
 
-  if (existingUser) {
-    return {
-      success: false,
-      message: "Username already exists.",
-    };
-  }
+      if (existingUsername) {
+        throw new Error("USERNAME_EXISTS");
+      }
 
-  // hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+      // Check email
+      const existingEmail = await tx.user.findUnique({
+        where: { email },
+      });
 
-    try {
-    await prisma.$transaction(async (tx) => {
+      if (existingEmail) {
+        throw new Error("EMAIL_EXISTS");
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       // Create employee first
       const employee = await tx.employee.create({
         data: {
@@ -61,12 +54,12 @@ export async function setupAdmin(data: unknown) {
           designation: "Administrator",
           joiningDate: new Date(),
           employmentStatus: "ACTIVE",
-          salary: 0
+          salary: 0,
         },
       });
 
-      // Create login account
-      await tx.user.create({
+      // Create SUPER_ADMIN account
+      const user = await tx.user.create({
         data: {
           employeeId: employee.id,
           username,
@@ -76,13 +69,39 @@ export async function setupAdmin(data: unknown) {
           accountStatus: "ACTIVE",
         },
       });
+
+      return user;
     });
 
     return {
       success: true,
       message: "Administrator account created successfully.",
+      userId: result.id,
     };
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "SETUP_ALREADY_COMPLETED") {
+        return {
+          success: false,
+          message: "Setup has already been completed.",
+        };
+      }
+
+      if (error.message === "USERNAME_EXISTS") {
+        return {
+          success: false,
+          message: "Username already exists.",
+        };
+      }
+
+      if (error.message === "EMAIL_EXISTS") {
+        return {
+          success: false,
+          message: "Email already exists.",
+        };
+      }
+    }
+
     console.error("Setup error:", error);
 
     return {

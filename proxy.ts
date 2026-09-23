@@ -8,7 +8,7 @@ export default auth((req) => {
 
   const isPublicPage =
     pathname === "/login" ||
-    pathname === "/admin-setup" ||
+    pathname === "/setup" ||
     pathname === "/change-password";
 
   if (!isLoggedIn && !isPublicPage) {

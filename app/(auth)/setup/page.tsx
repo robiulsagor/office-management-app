@@ -4,22 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 const RegisterPage = async () => {
-  const existingAdmin = await prisma.user.findFirst({
-    where: {
-      role: {
-        in: ["ADMIN", "SUPER_ADMIN"],
-      },
-    },
-  });
+  const existingUser = await prisma.user.findFirst();
 
-  if (existingAdmin) {
-    redirect("/dashboard");
+  if (existingUser) {
+    redirect("/login");
   }
 
   return (
     <div className="w-full">
       <AuthWrapper subText="Welcome to the setup page." page="setup">
-        {/* <LoginForm /> */}
         <SetupForm />
       </AuthWrapper>
     </div>
