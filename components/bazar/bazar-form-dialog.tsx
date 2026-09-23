@@ -123,7 +123,15 @@ const BazarFormDialog = ({
       );
     } else {
       setError("");
-      setDate("");
+
+      const today = new Date();
+      const formattedToday = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      setDate(formattedToday);
       setDeposit("");
       setItems([createEmptyItem()]);
     }
@@ -298,8 +306,8 @@ const BazarFormDialog = ({
               />
             </div>
 
-            <div className="space-y-2 text-xs sm:text-sm md:text-base">
-              <Label htmlFor="bazar-deposit" className="text-sm md:text-base">
+            <div className="space-y-2 ">
+              <Label htmlFor="bazar-deposit" className="">
                 Deposit
               </Label>
 
