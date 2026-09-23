@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { setupAdmin } from "@/actions/auth/setup";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const SetupForm = () => {
+  const router = useRouter()
   const {
     register,
     handleSubmit,
@@ -31,8 +33,8 @@ const SetupForm = () => {
       return;
     }
 
-    console.log(result.message);
     toast.success(result.message);
+    router.push("/login")
   };
 
   return (
