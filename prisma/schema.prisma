@@ -122,6 +122,11 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
+enum BazarType {
+  REGULAR
+  GUEST
+}
+
 enum BazarUnit {
   KG
   GRAM
@@ -146,19 +151,21 @@ model BazarItem {
 }
 
 model BazarEntry {
-  id      String   @id @default(cuid())
-  date    DateTime
-  deposit Decimal  @default(0)
+  id          String     @id @default(cuid())
+  date        DateTime
+  type        BazarType  @default(REGULAR)
+  deposit     Decimal    @default(0)
+  remarks     String?
+  createdById  String
 
-  createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
-
-  items BazarEntryItem[]
+  createdBy User @relation(fields: [createdById], references: [id])
+  items     BazarEntryItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([date])
+  @@index([type])
   @@index([createdById])
 }
 

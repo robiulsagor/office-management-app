@@ -4,15 +4,13 @@ import { requireActiveUser } from "@/lib/auth/require-active-user";
 import { prisma } from "@/lib/prisma";
 import { BazarEntry } from "@/types/bazar";
 
-export async function getBazarEntries(
-  month: string,
-): Promise<{
+export async function getBazarEntries(month: string): Promise<{
   success: boolean;
   message?: string;
   data: BazarEntry[];
 }> {
   try {
-     const authResult = await requireActiveUser();
+    const authResult = await requireActiveUser();
 
     if (!authResult.ok) {
       return {
@@ -59,22 +57,31 @@ export async function getBazarEntries(
       },
     });
 
+    console.log(
+      "BAZAR DB ENTRIES:",
+      entries.map((entry) => ({
+        id: entry.id,
+        type: entry.type,
+      })),
+    );
+
     return {
       success: true,
       data: entries.map((entry) => ({
         id: entry.id,
         date: entry.date.toISOString().split("T")[0],
+        type: entry.type,
         deposit: Number(entry.deposit),
+        remarks: entry.remarks ?? undefined,
         createdById: entry.createdById,
 
         items: entry.items.map((item) => ({
           id: item.id,
           bazarItemId: item.bazarItemId,
           name: item.bazarItem.nameEn,
-          quantity:
-            item.quantity !== null
-              ? Number(item.quantity)
-              : undefined,
+          nameEn: item.bazarItem.nameEn,
+          nameBn: item.bazarItem.nameBn,
+          quantity: item.quantity !== null ? Number(item.quantity) : undefined,
           unit: item.unit ?? undefined,
           price: Number(item.price),
         })),

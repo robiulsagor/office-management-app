@@ -15,7 +15,8 @@ type BazarDayTableProps = {
   onDelete: (entry: BazarEntry) => void;
 };
 
-const formatCurrency = (amount: number) => `৳${amount.toLocaleString("en-BD")}`;
+const formatCurrency = (amount: number) =>
+  `৳${amount.toLocaleString("en-BD")}`;
 
 const formatDate = (date: string) =>
   new Date(`${date}T00:00:00`).toLocaleDateString("en-BD", {
@@ -32,7 +33,10 @@ const BazarDayTable = ({
   onEdit,
   onDelete,
 }: BazarDayTableProps) => {
-  const totalDeposit = entries.reduce((sum, entry) => sum + entry.deposit, 0);
+  const totalDeposit = entries.reduce(
+    (sum, entry) => sum + entry.deposit,
+    0,
+  );
 
   const totalExpense = entries.reduce(
     (sum, entry) =>
@@ -42,8 +46,10 @@ const BazarDayTable = ({
 
   const canEditOrDelete = (entry: BazarEntry) => {
     const isOwner = entry.createdById === currentUserId;
+
     const isAdmin =
-      currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
+      currentUserRole === "ADMIN" ||
+      currentUserRole === "SUPER_ADMIN";
 
     return isOwner || isAdmin;
   };
@@ -54,26 +60,40 @@ const BazarDayTable = ({
         <thead>
           <tr className="border-y bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <th className="px-6 py-3">Date</th>
-
+            <th className="px-6 py-3">Type</th>
             <th className="px-6 py-3 text-right">Deposit</th>
-
             <th className="px-6 py-3 text-right">Expense</th>
-
             <th className="px-6 py-3 text-right">Actions</th>
           </tr>
         </thead>
 
         <tbody className="divide-y">
           {entries.map((entry) => {
+            console.log("Entry:", entry.type); // Debugging line to check the entry object
             const expense = entry.items.reduce(
               (sum, item) => sum + item.price,
               0,
             );
 
             return (
-              <tr key={entry.id} className="hover:bg-slate-50/70">
+              <tr
+                key={entry.id}
+                className="hover:bg-slate-50/70"
+              >
                 <td className="px-6 py-4 text-sm font-medium">
                   {formatDate(entry.date)}
+                </td>
+
+                <td className="px-6 py-4">
+                  {entry.type === "GUEST" ? (
+                    <span className="inline-flex rounded-full bg-purple-100 px-2.5 py-1 text-xs font-medium text-purple-700">
+                      Guest
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                      Regular
+                    </span>
+                  )}
                 </td>
 
                 <td className="px-6 py-4 text-right text-sm text-emerald-700">
@@ -131,6 +151,8 @@ const BazarDayTable = ({
           <tr className="border-t-2 bg-slate-50 font-bold">
             <td className="px-6 py-4">Total</td>
 
+            <td />
+
             <td className="px-6 py-4 text-right text-emerald-700">
               {formatCurrency(totalDeposit)}
             </td>
@@ -138,6 +160,7 @@ const BazarDayTable = ({
             <td className="px-6 py-4 text-right text-orange-700">
               {formatCurrency(totalExpense)}
             </td>
+
             <td />
           </tr>
         </tfoot>

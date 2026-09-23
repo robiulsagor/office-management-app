@@ -13,7 +13,9 @@ type UpdateBazarItem = {
 type UpdateBazarData = {
   id: string;
   date: string;
+  type?: "REGULAR" | "GUEST";
   deposit: number;
+  remarks?: string;
   items: UpdateBazarItem[];
 };
 
@@ -107,7 +109,10 @@ export async function updateBazar(data: UpdateBazarData) {
         },
         data: {
           date: new Date(`${data.date}T12:00:00`),
+          type: data.type ?? "REGULAR",
           deposit: data.deposit,
+          remarks: data.remarks?.trim() || null,
+
           items: {
             create: data.items.map((item) => ({
               bazarItemId: item.bazarItemId,

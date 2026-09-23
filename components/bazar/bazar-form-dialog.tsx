@@ -37,6 +37,8 @@ const createEmptyItem = (): BazarItem => ({
   id: crypto.randomUUID(),
   bazarItemId: "",
   name: "",
+  nameEn: "",
+  nameBn: "",
   quantity: undefined,
   unit: undefined,
   price: 0,
@@ -51,6 +53,8 @@ const BazarFormDialog = ({
 }: BazarFormDialogProps) => {
   const [date, setDate] = useState("");
   const [deposit, setDeposit] = useState("");
+  const [type, setType] = useState<"REGULAR" | "GUEST">("REGULAR");
+  const [remarks, setRemarks] = useState("");
   const [items, setItems] = useState<BazarItem[]>([createEmptyItem()]);
   const [error, setError] = useState("");
 
@@ -114,7 +118,9 @@ const BazarFormDialog = ({
     if (editingEntry) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDate(editingEntry.date);
+      setType(editingEntry.type);
       setDeposit(String(editingEntry.deposit));
+      setRemarks(editingEntry.remarks ?? "");
       setError("");
       setItems(
         editingEntry.items.map((item) => ({
@@ -131,6 +137,8 @@ const BazarFormDialog = ({
         String(today.getDate()).padStart(2, "0"),
       ].join("-");
 
+      setType("REGULAR");
+      setRemarks("");
       setDate(formattedToday);
       setDeposit("");
       setItems([createEmptyItem()]);
@@ -225,7 +233,9 @@ const BazarFormDialog = ({
 
     const bazarData = {
       date,
+      type,
       deposit: Number(deposit) || 0,
+      remarks: remarks.trim(),
       items: validItems.map((item) => ({
         bazarItemId: item.bazarItemId,
         quantity: item.quantity,
@@ -293,7 +303,7 @@ const BazarFormDialog = ({
 
           {/* Date + Deposit */}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="bazar-date">Date</Label>
 
@@ -304,6 +314,19 @@ const BazarFormDialog = ({
                 className="text-sm md:text-base"
                 onChange={(e) => setDate(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bazar-type">Type</Label>
+              <select
+                id="bazar-type"
+                value={type}
+                onChange={(e) => setType(e.target.value as "REGULAR" | "GUEST")}
+                className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="REGULAR">Regular</option>
+                <option value="GUEST">Guest</option>
+              </select>
             </div>
 
             <div className="space-y-2 ">
@@ -385,6 +408,8 @@ const BazarFormDialog = ({
                                   ...currentItem,
                                   bazarItemId: selectedItem.id,
                                   name: selectedItem.nameEn,
+                                  nameEn: selectedItem.nameEn,
+                                  nameBn: selectedItem.nameBn,
                                 }
                               : currentItem,
                           ),
@@ -462,6 +487,19 @@ const BazarFormDialog = ({
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bazar-remarks">Remarks</Label>
+
+            <textarea
+              id="bazar-remarks"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder="Add any additional notes about this bazar entry..."
+              rows={4}
+              className="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {/* Expense */}

@@ -22,6 +22,7 @@ const BazarFilters = ({
   selectedItem,
   onItemChange,
 }: BazarFiltersProps) => {
+  console.log("BazarFilters Props:", items)
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* View Mode */}

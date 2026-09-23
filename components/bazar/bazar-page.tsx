@@ -1,6 +1,6 @@
 "use client";
 
-import {  useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Printer, Plus, ShoppingBasket } from "lucide-react";
 
@@ -31,7 +31,7 @@ const BazarPage = ({
   month,
   currentUserId,
   currentUserRole,
-  initialEntries
+  initialEntries,
 }: BazarPageProps) => {
   // ------------------------------------------------
   // State
@@ -46,7 +46,7 @@ const BazarPage = ({
   const [formOpen, setFormOpen] = useState(false);
 
   const [editingEntry, setEditingEntry] = useState<BazarEntry | null>(null);
-const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const refreshEntries = async () => {
     const result = await getBazarEntries(month);
@@ -113,7 +113,9 @@ const [deletingId, setDeletingId] = useState<string | null>(null);
   const itemNames = useMemo(() => {
     return [
       ...new Set(
-        monthlyEntries.flatMap((entry) => entry.items.map((item) => item.name)),
+        monthlyEntries.flatMap((entry) =>
+          entry.items.map((item) => item.nameEn),
+        ),
       ),
     ].sort();
   }, [monthlyEntries]);
@@ -160,45 +162,42 @@ const [deletingId, setDeletingId] = useState<string | null>(null);
   // Delete Entry
   // ------------------------------------------------
 
- const handleDeleteEntry = async (entry: BazarEntry) => {
-  const isOwner = entry.createdById === currentUserId;
+  const handleDeleteEntry = async (entry: BazarEntry) => {
+    const isOwner = entry.createdById === currentUserId;
 
-  const isAdmin =
-    currentUserRole === "ADMIN" ||
-    currentUserRole === "SUPER_ADMIN";
+    const isAdmin =
+      currentUserRole === "ADMIN" || currentUserRole === "SUPER_ADMIN";
 
-  if (!isOwner && !isAdmin) {
-    return;
-  }
-
-  if (deletingId) return;
-
-  const confirmed = window.confirm(
-    `Delete bazar entry for ${entry.date}?`,
-  );
-
-  if (!confirmed) return;
-
-  setDeletingId(entry.id);
-
-  try {
-    const result = await deleteBazarEntry(entry.id);
-
-    if (!result.success) {
-      toast.error(result.message || "Failed to delete bazar entry.");
+    if (!isOwner && !isAdmin) {
       return;
     }
 
-    await refreshEntries();
+    if (deletingId) return;
 
-    toast.success("Bazar entry deleted successfully.");
-  } catch (error) {
-    console.error("Delete bazar error:", error);
-    toast.error("Something went wrong while deleting the bazar entry.");
-  } finally {
-    setDeletingId(null);
-  }
-};
+    const confirmed = window.confirm(`Delete bazar entry for ${entry.date}?`);
+
+    if (!confirmed) return;
+
+    setDeletingId(entry.id);
+
+    try {
+      const result = await deleteBazarEntry(entry.id);
+
+      if (!result.success) {
+        toast.error(result.message || "Failed to delete bazar entry.");
+        return;
+      }
+
+      await refreshEntries();
+
+      toast.success("Bazar entry deleted successfully.");
+    } catch (error) {
+      console.error("Delete bazar error:", error);
+      toast.error("Something went wrong while deleting the bazar entry.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // ------------------------------------------------
   // Print
@@ -216,6 +215,7 @@ const [deletingId, setDeletingId] = useState<string | null>(null);
     window.open("/print/bazar", "_blank");
   };
 
+  const [language, setLanguage] = useState<"en" | "bn">("en");
   // ------------------------------------------------
   // Render
   // ------------------------------------------------
@@ -291,13 +291,36 @@ const [deletingId, setDeletingId] = useState<string | null>(null);
             </p>
           </div>
 
-          <BazarFilters
-            mode={viewMode}
-            onModeChange={setViewMode}
-            items={itemNames}
-            selectedItem={selectedItem}
-            onItemChange={setSelectedItem}
-          />
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            {viewMode === "item-wise" && (
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`${language === "en" ? "bg-black hover:bg-slate-800 text-white hover:text-white" : "cursor-pointer"}`}
+                  onClick={() => setLanguage("en")}
+                >
+                  En
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`ml-1.5 ${language === "bn" ? "bg-black hover:bg-slate-800 text-white hover:text-white" : "cursor-pointer"}`}
+                  onClick={() => setLanguage("bn")}
+                >
+                  Bn
+                </Button>
+              </div>
+            )}
+
+            <BazarFilters
+              mode={viewMode}
+              onModeChange={setViewMode}
+              items={itemNames}
+              selectedItem={selectedItem}
+              onItemChange={setSelectedItem}
+            />
+          </div>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -324,6 +347,7 @@ const [deletingId, setDeletingId] = useState<string | null>(null);
             <BazarItemTable
               entries={filteredEntries}
               selectedItem={selectedItem}
+              language={language}
             />
           )}
         </CardContent>

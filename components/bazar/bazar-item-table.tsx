@@ -3,6 +3,7 @@ import { BazarEntry } from "@/types/bazar";
 type BazarItemTableProps = {
   entries: BazarEntry[];
   selectedItem: string;
+  language: "en" | "bn";
 };
 
 const formatCurrency = (amount: number) => `৳${amount.toLocaleString("en-BD")}`;
@@ -22,7 +23,7 @@ const formatQuantity = (quantity: number) => {
       });
 };
 
-const BazarItemTable = ({ entries, selectedItem }: BazarItemTableProps) => {
+const BazarItemTable = ({ entries, selectedItem, language }: BazarItemTableProps) => {
   const totalDeposit = entries.reduce((sum, entry) => sum + entry.deposit, 0);
 
   const totalExpense = entries.reduce(
@@ -67,15 +68,15 @@ const BazarItemTable = ({ entries, selectedItem }: BazarItemTableProps) => {
                         className="flex max-w-sm items-center justify-between gap-8 text-sm"
                       >
                         <div className="flex items-center gap-3">
-                         <span
-  className={
-    item.name === selectedItem
-      ? "rounded-md bg-teal-100 px-2 py-1 font-semibold text-teal-800"
-      : ""
-  }
->
-  {item.name}
-</span>
+                          <span
+                            className={
+                              language === "en" && item.nameEn === selectedItem
+                                ? "rounded-md bg-teal-100 px-2 py-1 font-semibold text-teal-800"
+                                : ""
+                            }
+                          >
+                            {language === "en" ? item.nameEn : item.nameBn}
+                          </span>
 
                           {item.quantity != null && item.unit && (
                             <span className="text-xs text-muted-foreground">

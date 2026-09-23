@@ -14,7 +14,9 @@ type CreateBazarItem = {
 
 type CreateBazarData = {
   date: string;
+  type?: "REGULAR" | "GUEST";
   deposit: number;
+  remarks?: string;
   items: CreateBazarItem[];
 };
 
@@ -46,7 +48,9 @@ export async function createBazar(data: CreateBazarData) {
     await prisma.bazarEntry.create({
       data: {
         date: new Date(`${data.date}T12:00:00`),
+        type: data.type ?? "REGULAR",
         deposit: data.deposit,
+        remarks: data.remarks?.trim() || null,
 
         createdBy: {
           connect: {
