@@ -244,7 +244,7 @@ const BazarPage = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <MonthSelector month={month} />
+          <MonthSelector month={month} basePath="/bazar"/>
 
           <Button type="button" variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 size-4" />
