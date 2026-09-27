@@ -32,25 +32,20 @@ export default async function ExpensesPage({
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">
-            Expenses
-          </h1>
+          <h1 className="text-2xl font-semibold">Expenses</h1>
 
           <p className="text-sm text-muted-foreground">
             Manage office expenses.
           </p>
         </div>
 
-        <AddExpenseDialog />
+        <div className="flex justify-center gap-3">
+          <MonthSelector month={month} basePath="/expenses" />
+          <AddExpenseDialog />
+        </div>
       </div>
 
       {/* Month Selector */}
-      <div className="flex justify-center">
-        <MonthSelector
-          month={month}
-          baseUrl="/expenses"
-        />
-      </div>
 
       {/* Expense List */}
       <ExpenseList month={month} />

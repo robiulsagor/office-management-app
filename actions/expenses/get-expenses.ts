@@ -50,7 +50,7 @@ export async function getExpenses(month: string): Promise<{
         },
       },
       orderBy: {
-        date: "asc",
+        date: "desc",
       },
       include: {
         category: {
