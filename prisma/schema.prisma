@@ -72,6 +72,7 @@ model User {
 
   employee                   Employee @relation(fields: [employeeId], references: [id])
   bazarEntries               BazarEntry[]
+  expenseEntries             Expense[]
   conveyanceRecords          ConveyanceRecord[]
   monthlyConveyanceApprovals MonthlyConveyanceApproval[]
   passwordResetRequests      PasswordResetRequest[]
@@ -266,4 +267,33 @@ model MonthlyConveyanceApproval {
   @@index([monthlyConveyanceId])
   @@index([actedById])
   @@index([actedAt])
+}
+
+model ExpenseCategory {
+  id        String    @id @default(cuid())
+  name      String
+  isActive  Boolean   @default(true)
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([name])
+  @@index([isActive])
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  date        DateTime
+  categoryId  String
+  category    ExpenseCategory @relation(fields: [categoryId], references: [id])
+  amount      Decimal
+  description String?
+  createdById String
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([date])
+  @@index([categoryId])
+  @@index([createdById])
 }
