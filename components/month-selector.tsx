@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 
 type MonthSelectorProps = {
   month: string;
+  baseUrl?: string; // Optional base URL for navigation, default is "/bazar"
 };
 
-const MonthSelector = ({ month }: MonthSelectorProps) => {
+const MonthSelector = ({ month, baseUrl = "/bazar" }: MonthSelectorProps) => {
   const router = useRouter();
 
   const [year, monthNumber] = month.split("-").map(Number);
@@ -36,7 +37,7 @@ const MonthSelector = ({ month }: MonthSelectorProps) => {
 
     const newMonth = String(newDate.getMonth() + 1).padStart(2, "0");
 
-    router.push(`/bazar?month=${newYear}-${newMonth}`);
+    router.push(`${baseUrl}?month=${newYear}-${newMonth}`);
   };
 
   const isCurrentMonth = selectedDate.getTime() >= currentDate.getTime();
