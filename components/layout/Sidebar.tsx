@@ -2,9 +2,13 @@
 import { signOut } from "next-auth/react";
 
 import {
+  Banknote,
+  Bus,
+  DollarSign,
   DoorClosed,
   Grid2X2,
   ListOrdered,
+  LogOut,
   NotebookPenIcon,
   ShoppingBasket,
   UserCheck,
@@ -64,20 +68,27 @@ const menuItems: MenuTypes[] = [
   },
   {
     id: 6,
-    path: "/conveyance",
-    label: "Conveyance",
-    icon: Grid2X2,
-    roles: ["super_admin", "admin", "accounts", "employee"],
+    path: "/expenses",
+    label: "Expenses",
+    icon: Banknote,
+    roles: ["super_admin", "admin"],
   },
   {
     id: 7,
-    path: "/salary",
-    label: "Salary",
-    icon: Grid2X2,
-    roles: ["super_admin", "admin", "accounts"],
+    path: "/conveyance",
+    label: "Conveyance",
+    icon: Bus,
+    roles: ["super_admin", "admin", "accounts", "employee"],
   },
   {
     id: 8,
+    path: "/salary",
+    label: "Salary",
+    icon: DollarSign,
+    roles: ["super_admin", "admin", "accounts"],
+  },
+  {
+    id: 9,
     path: "/user-management",
     label: "User Management",
     icon: UserCheck,
@@ -113,13 +124,13 @@ const Sidebar = () => {
               <SidebarHeader />
             </SheetTitle>
           </SheetHeader>
-          <SidebarMenuItems visibleMenu={menuItems} showSidebar={showSidebar} />
+          <SidebarMenuItems visibleMenu={menuItems} showSidebar={true} />
           <SheetFooter>
-            <Link
-              href={path}
+            <button 
+              onClick={handleLogout}
               className="flex gap-2 p-3 hover:underline hover:bg-teal-600/10 rounded-xl"
             >
-              <DoorClosed />
+              <LogOut />
               <motion.span
                 animate={{
                   opacity: showSidebar ? 1 : 0,
@@ -130,7 +141,7 @@ const Sidebar = () => {
               >
                 Logout
               </motion.span>
-            </Link>
+            </button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
@@ -150,11 +161,11 @@ const Sidebar = () => {
           <SidebarMenuItems visibleMenu={menuItems} showSidebar={showSidebar} />
 
           <div className="mt-auto">
-            <Link
-              href={path}
+            <button
               className="flex gap-2 p-3 hover:underline hover:bg-teal-600/10 rounded-xl"
+              onClick={handleLogout}
             >
-              <DoorClosed />
+              <LogOut />  {/* Logout icon */}
               <motion.span
                 animate={{
                   opacity: showSidebar ? 1 : 0,
@@ -162,11 +173,10 @@ const Sidebar = () => {
                   display: showSidebar ? "block" : "none",
                 }}
                 transition={{ duration: 0.2 }}
-                onClick={handleLogout}
               >
                 Logout
               </motion.span>
-            </Link>
+            </button>
           </div>
         </div>
       </motion.div>
