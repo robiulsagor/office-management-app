@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { BazarEntry, BazarViewMode } from "@/types/bazar";
 
-import BazarMonthSelector from "./bazar-month-selector";
+import MonthSelector from "../month-selector";
 import BazarSummary from "./bazar-summary";
 import BazarFilters from "./bazar-filters";
 import BazarDayTable from "./bazar-day-table";
@@ -244,7 +244,7 @@ const BazarPage = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <BazarMonthSelector month={month} />
+          <MonthSelector month={month} />
 
           <Button type="button" variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 size-4" />
