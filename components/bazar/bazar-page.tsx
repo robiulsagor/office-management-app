@@ -293,19 +293,21 @@ const BazarPage = ({
 
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             {viewMode === "item-wise" && (
-              <div>
+              <div className="border  rounded-lg p-1">
                 <Button
+                 size="sm"
                   type="button"
                   variant="outline"
-                  className={`${language === "en" ? "bg-black hover:bg-slate-800 text-white hover:text-white" : "cursor-pointer"}`}
+                  className={`border-0 ${language === "en" ? "bg-black hover:bg-slate-800 text-white hover:text-white " : "cursor-pointer"}`}
                   onClick={() => setLanguage("en")}
                 >
                   En
                 </Button>
                 <Button
+                size="sm"
                   type="button"
                   variant="outline"
-                  className={`ml-1.5 ${language === "bn" ? "bg-black hover:bg-slate-800 text-white hover:text-white" : "cursor-pointer"}`}
+                  className={`ml-1 border-0 ${language === "bn" ? "bg-black hover:bg-slate-800 text-white hover:text-white" : "cursor-pointer"}`}
                   onClick={() => setLanguage("bn")}
                 >
                   Bn
