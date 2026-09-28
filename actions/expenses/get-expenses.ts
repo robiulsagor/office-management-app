@@ -18,6 +18,7 @@ export async function getExpenses(month: string): Promise<{
   message?: string;
   data: ExpenseData[];
 }> {
+  console.time("getExpenses");
   try {
     const authResult = await requireActiveUser();
 
@@ -62,6 +63,7 @@ export async function getExpenses(month: string): Promise<{
       },
     });
 
+    console.timeEnd("getExpenses");
     return {
       success: true,
       data: expenses.map((expense) => ({
