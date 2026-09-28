@@ -1,15 +1,14 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getExpenses } from "@/actions/expenses/get-expenses";
+import EditExpenseDialog from "@/components/expenses/edit-expense-dialog";
 
 type ExpenseListProps = {
   month: string;
 };
 
-export default async function ExpenseList({
-  month,
-}: ExpenseListProps) {
+export default async function ExpenseList({ month }: ExpenseListProps) {
   const result = await getExpenses(month);
 
   if (!result.success) {
@@ -30,9 +29,7 @@ export default async function ExpenseList({
   return (
     <div className="space-y-4">
       <div className="rounded-lg border bg-card p-5">
-        <p className="text-sm text-muted-foreground">
-          Total Expense
-        </p>
+        <p className="text-sm text-muted-foreground">Total Expense</p>
 
         <p className="mt-1 text-2xl font-semibold">
           ৳{totalExpense.toLocaleString("en-BD")}
@@ -53,63 +50,48 @@ export default async function ExpenseList({
             <table className="w-full text-sm">
               <thead className="border-b bg-muted/50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium">
-                    Date
-                  </th>
+                  <th className="px-4 py-3 text-left font-medium">Date</th>
 
-                  <th className="px-4 py-3 text-left font-medium">
-                    Category
-                  </th>
+                  <th className="px-4 py-3 text-left font-medium">Category</th>
 
                   <th className="px-4 py-3 text-left font-medium">
                     Description
                   </th>
 
-                  <th className="px-4 py-3 text-right font-medium">
-                    Amount
-                  </th>
+                  <th className="px-4 py-3 text-right font-medium">Amount</th>
 
-                  <th className="px-4 py-3 text-right font-medium">
-                    Actions
-                  </th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y">
                 {expenses.map((expense) => (
-                  <tr
-                    key={expense.id}
-                    className="hover:bg-muted/30"
-                  >
+                  <tr key={expense.id} className="hover:bg-muted/30">
                     <td className="whitespace-nowrap px-4 py-3">
-                      {new Date(
-                        expense.date,
-                      ).toLocaleDateString("en-GB")}
+                      {new Date(expense.date).toLocaleDateString("en-GB")}
                     </td>
 
-                    <td className="px-4 py-3">
-                      {expense.categoryName}
-                    </td>
+                    <td className="px-4 py-3">{expense.categoryName}</td>
 
                     <td className="px-4 py-3 text-muted-foreground">
                       {expense.description || "—"}
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3 text-right font-medium">
-                      ৳
-                      {expense.amount.toLocaleString("en-BD")}
+                      ৳{expense.amount.toLocaleString("en-BD")}
                     </td>
 
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          title="Edit expense"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
+                        <EditExpenseDialog
+                          expense={{
+                            id: expense.id,
+                            date: expense.date,
+                            categoryId: expense.categoryId,
+                            amount: expense.amount,
+                            description: expense.description,
+                          }}
+                        />
 
                         <Button
                           type="button"

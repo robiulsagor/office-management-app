@@ -18,12 +18,25 @@ import {
   getExpenseCategories,
 } from "@/actions/expenses/get-expense-categories";
 import toast from "react-hot-toast";
+import { updateExpense } from "@/actions/expenses/update-expenset";
 
 type ExpenseFormProps = {
+  mode?: "add" | "edit";
+  expense?: {
+    id: string;
+    date: string;
+    categoryId: string;
+    amount: number;
+    description?: string;
+  };
   onSuccess?: () => void;
 };
 
-export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
+export default function ExpenseForm({
+  mode = "add",
+  expense,
+  onSuccess,
+}: ExpenseFormProps) {
   const [categories, setCategories] = useState<ExpenseCategoryData[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
@@ -33,12 +46,24 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   }));
 
   const [date, setDate] = useState(() => {
+    if (mode === "edit" && expense) {
+      return expense.date;
+    }
+
     return new Date().toISOString().split("T")[0];
   });
 
-  const [categoryId, setCategoryId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState(() => {
+    return mode === "edit" && expense ? expense.categoryId : "";
+  });
+
+  const [amount, setAmount] = useState(() => {
+    return mode === "edit" && expense ? String(expense.amount) : "";
+  });
+
+  const [description, setDescription] = useState(() => {
+    return mode === "edit" && expense ? (expense.description ?? "") : "";
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -98,12 +123,21 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     setIsSubmitting(true);
 
     try {
-      const result = await createExpense({
-        date,
-        categoryId,
-        amount: numericAmount,
-        description: description.trim() || undefined,
-      });
+      const result =
+        mode === "edit" && expense
+          ? await updateExpense({
+              id: expense.id,
+              date,
+              categoryId,
+              amount: numericAmount,
+              description: description.trim() || undefined,
+            })
+          : await createExpense({
+              date,
+              categoryId,
+              amount: numericAmount,
+              description: description.trim() || undefined,
+            });
 
       if (!result.success) {
         setError(result.message || "Failed to create expense.");
@@ -112,13 +146,20 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
 
       setMessage(result.message);
 
-      setDate(new Date().toISOString().split("T")[0]);
-      setCategoryId("");
-      setAmount("");
-      setDescription("");
+      if (mode === "add") {
+        setDate(new Date().toISOString().split("T")[0]);
+        setCategoryId("");
+        setAmount("");
+        setDescription("");
+      }
 
       onSuccess?.();
-      toast.success("Expense created successfully!");
+
+      toast.success(
+        mode === "edit"
+          ? "Expense updated successfully!"
+          : "Expense created successfully!",
+      );
     } catch (error) {
       console.error("Create expense form error:", error);
       setError("Something went wrong while creating the expense.");
@@ -224,9 +265,13 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
       )}
 
       {/* Submit */}
-      <Button type="submit" disabled={isSubmitting || isLoadingCategories}>
-        {isSubmitting ? "Saving..." : "Add Expense"}
-      </Button>
+     <Button type="submit" disabled={isSubmitting || isLoadingCategories}>
+  {isSubmitting
+    ? "Saving..."
+    : mode === "edit"
+      ? "Update Expense"
+      : "Add Expense"}
+</Button>
     </form>
   );
 }
