@@ -45,10 +45,27 @@ export async function requireActiveUser() {
   });
 
   console.log(
-    `[requireActiveUser] user query: ${(
-      performance.now() - userQueryStart
-    ).toFixed(0)}ms`,
-  );
+  `[requireActiveUser] user query 1: ${(
+    performance.now() - userQueryStart
+  ).toFixed(0)}ms`,
+);
+
+const secondQueryStart = performance.now();
+
+await prisma.user.findUnique({
+  where: {
+    id: session.user.id,
+  },
+  select: {
+    id: true,
+  },
+});
+
+console.log(
+  `[requireActiveUser] user query 2: ${(
+    performance.now() - secondQueryStart
+  ).toFixed(0)}ms`,
+);
 
   if (!user) {
     console.log(
