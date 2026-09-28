@@ -29,6 +29,16 @@ export async function requireActiveUser() {
     };
   }
 
+  const rawStart = performance.now();
+
+await prisma.$queryRaw`SELECT 1`;
+
+console.log(
+  `[requireActiveUser] raw SELECT 1: ${(
+    performance.now() - rawStart
+  ).toFixed(0)}ms`,
+);
+
   const userQueryStart = performance.now();
 
   const user = await prisma.user.findUnique({
