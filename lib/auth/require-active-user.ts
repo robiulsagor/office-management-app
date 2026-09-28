@@ -1,45 +1,15 @@
-import { performance } from "node:perf_hooks";
-
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function requireActiveUser() {
-  const totalStart = performance.now();
-
-  const authStart = performance.now();
-
   const session = await auth();
 
-  console.log(
-    `[requireActiveUser] auth(): ${(
-      performance.now() - authStart
-    ).toFixed(0)}ms`,
-  );
-
   if (!session?.user?.id) {
-    console.log(
-      `[requireActiveUser] total: ${(
-        performance.now() - totalStart
-      ).toFixed(0)}ms`,
-    );
-
     return {
       ok: false as const,
       message: "Unauthorized",
     };
   }
-
-  const rawStart = performance.now();
-
-await prisma.$queryRaw`SELECT 1`;
-
-console.log(
-  `[requireActiveUser] raw SELECT 1: ${(
-    performance.now() - rawStart
-  ).toFixed(0)}ms`,
-);
-
-  const userQueryStart = performance.now();
 
   const user = await prisma.user.findUnique({
     where: {
@@ -54,36 +24,7 @@ console.log(
     },
   });
 
-  console.log(
-  `[requireActiveUser] user query 1: ${(
-    performance.now() - userQueryStart
-  ).toFixed(0)}ms`,
-);
-
-const secondQueryStart = performance.now();
-
-await prisma.user.findUnique({
-  where: {
-    id: session.user.id,
-  },
-  select: {
-    id: true,
-  },
-});
-
-console.log(
-  `[requireActiveUser] user query 2: ${(
-    performance.now() - secondQueryStart
-  ).toFixed(0)}ms`,
-);
-
   if (!user) {
-    console.log(
-      `[requireActiveUser] total: ${(
-        performance.now() - totalStart
-      ).toFixed(0)}ms`,
-    );
-
     return {
       ok: false as const,
       message: "User not found",
@@ -91,23 +32,11 @@ console.log(
   }
 
   if (user.accountStatus !== "ACTIVE") {
-    console.log(
-      `[requireActiveUser] total: ${(
-        performance.now() - totalStart
-      ).toFixed(0)}ms`,
-    );
-
     return {
       ok: false as const,
       message: "ACCOUNT_NOT_ACTIVE",
     };
   }
-
-  console.log(
-    `[requireActiveUser] total: ${(
-      performance.now() - totalStart
-    ).toFixed(0)}ms`,
-  );
 
   return {
     ok: true as const,

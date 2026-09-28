@@ -1,7 +1,5 @@
 "use server";
 
-import { performance } from "node:perf_hooks";
-
 import { requireActiveUser } from "@/lib/auth/require-active-user";
 import { prisma } from "@/lib/prisma";
 
@@ -21,17 +19,7 @@ export async function getExpenses(month: string): Promise<{
   data: ExpenseData[];
 }> {
   try {
-    console.time("getExpenses");
-    const totalStart = performance.now();
-
-    const authStart = performance.now();
-
     const authResult = await requireActiveUser();
-
-    console.log(
-      `[getExpenses] auth: ${(performance.now() - authStart).toFixed(0)}ms`,
-    );
-
     if (!authResult.ok) {
       return {
         success: false,
@@ -53,8 +41,6 @@ export async function getExpenses(month: string): Promise<{
     const startDate = new Date(year, monthNumber - 1, 1, 0, 0, 0);
     const endDate = new Date(year, monthNumber, 1, 0, 0, 0);
 
-    const queryStart = performance.now();
-
     const expenses = await prisma.expense.findMany({
       where: {
         date: {
@@ -75,15 +61,6 @@ export async function getExpenses(month: string): Promise<{
       },
     });
 
-    console.log(
-      `[getExpenses] query: ${(performance.now() - queryStart).toFixed(0)}ms`,
-    );
-
-    console.timeEnd("getExpenses");
-
-    console.log(
-      `[getExpenses] total: ${(performance.now() - totalStart).toFixed(0)}ms`,
-    );
     return {
       success: true,
       data: expenses.map((expense) => ({
