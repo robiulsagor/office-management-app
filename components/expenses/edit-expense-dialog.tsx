@@ -26,32 +26,30 @@ type EditExpenseDialogProps = {
   };
 };
 
-export default function EditExpenseDialog({
-  expense,
-}: EditExpenseDialogProps) {
+export default function EditExpenseDialog({ expense }: EditExpenseDialogProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-     <DialogTrigger>
-  <Button
-    type="button"
-    variant="ghost"
-    size="icon"
-    title="Edit expense"
-  >
-    <Pencil className="size-4" />
-  </Button>
-</DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title="Edit expense"
+          >
+            <Pencil className="size-4" />
+          </Button>
+        }
+      />
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Expense</DialogTitle>
 
-          <DialogDescription>
-            Update the expense details.
-          </DialogDescription>
+          <DialogDescription>Update the expense details.</DialogDescription>
         </DialogHeader>
 
         <ExpenseForm

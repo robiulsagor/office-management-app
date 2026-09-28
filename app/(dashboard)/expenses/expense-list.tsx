@@ -1,8 +1,6 @@
-import { Trash2 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { getExpenses } from "@/actions/expenses/get-expenses";
 import EditExpenseDialog from "@/components/expenses/edit-expense-dialog";
+import DeleteExpenseDialog from "./delete-expense-dialog";
 
 type ExpenseListProps = {
   month: string;
@@ -93,14 +91,13 @@ export default async function ExpenseList({ month }: ExpenseListProps) {
                           }}
                         />
 
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          title="Delete expense"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <DeleteExpenseDialog
+                          expense={{
+                            id: expense.id,
+                            categoryName: expense.categoryName,
+                            amount: expense.amount,
+                          }}
+                        />
                       </div>
                     </td>
                   </tr>
