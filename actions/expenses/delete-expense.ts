@@ -27,6 +27,7 @@ export async function deleteExpense(id: string) {
       },
       select: {
         id: true,
+        createdById: true,
       },
     });
 
@@ -34,6 +35,16 @@ export async function deleteExpense(id: string) {
       return {
         success: false,
         message: "Expense not found.",
+      };
+    }
+
+    if (
+      authResult.user.role !== "SUPER_ADMIN" &&
+      expense.createdById !== authResult.user.id
+    ) {
+      return {
+        success: false,
+        message: "You are not allowed to modify this expense.",
       };
     }
 

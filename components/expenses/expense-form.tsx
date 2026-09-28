@@ -18,7 +18,7 @@ import {
   getExpenseCategories,
 } from "@/actions/expenses/get-expense-categories";
 import toast from "react-hot-toast";
-import { updateExpense } from "@/actions/expenses/update-expenset";
+import { updateExpense } from "@/actions/expenses/update-expense";
 
 type ExpenseFormProps = {
   mode?: "add" | "edit";
