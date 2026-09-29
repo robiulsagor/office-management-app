@@ -39,6 +39,10 @@ const ConveyanceTable = ({
               To
             </th>
 
+            <th className="px-4 py-3 font-semibold">
+              Remarks
+            </th>
+
             <th className="px-4 py-3 text-right font-semibold">
               Bill
             </th>
@@ -65,6 +69,10 @@ const ConveyanceTable = ({
 
               <td className="px-4 py-3 text-sm">
                 {entry.to}
+              </td>
+
+              <td className="px-4 py-3 text-sm">
+                {entry.remarks || "-"}
               </td>
 
               <td className="px-4 py-3 text-right text-sm font-medium">
@@ -100,7 +108,7 @@ const ConveyanceTable = ({
         <tfoot>
           <tr className="bg-slate-50 font-semibold">
             <td
-              colSpan={3}
+              colSpan={4}
               className="px-4 py-3 text-right"
             >
               Total
