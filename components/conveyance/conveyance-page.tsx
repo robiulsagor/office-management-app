@@ -5,17 +5,9 @@ import { useMemo, useState } from "react";
 import { Plus, Printer, ReceiptText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import {
-  ConveyanceEmployee,
-  ConveyanceEntry,
-} from "@/types/conveyance";
+import { ConveyanceEmployee, ConveyanceEntry } from "@/types/conveyance";
 
 import ConveyanceEmployeeSelector from "./conveyance-employee-selector";
 import ConveyanceTable from "./conveyance-table";
@@ -23,6 +15,7 @@ import ConveyanceFormDialog from "./conveyance-form-dialog";
 import ConveyanceMonthSelector from "./conveyance-month-selector";
 import { createConveyance } from "@/actions/conveyance/create-conveyance";
 import { updateConveyance } from "@/actions/conveyance/update-conveyance";
+import { deleteConveyance } from "@/actions/conveyance/delete-conveyance";
 
 type ConveyancePageProps = {
   month: string;
@@ -41,22 +34,19 @@ const ConveyancePage = ({
   employees,
   initialEntries,
 }: ConveyancePageProps) => {
-  const selectedMonth = useMemo(
-    () => getMonthDate(month),
-    [month],
-  );
+  const selectedMonth = useMemo(() => getMonthDate(month), [month]);
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
     employees[0]?.id ?? "",
   );
 
-  const [entries, setEntries] =
-    useState<ConveyanceEntry[]>(initialEntries);
+  const [entries, setEntries] = useState<ConveyanceEntry[]>(initialEntries);
 
   const [formOpen, setFormOpen] = useState(false);
 
-  const [editingEntry, setEditingEntry] =
-    useState<ConveyanceEntry | null>(null);
+  const [editingEntry, setEditingEntry] = useState<ConveyanceEntry | null>(
+    null,
+  );
 
   const selectedEmployee = employees.find(
     (employee) => employee.id === selectedEmployeeId,
@@ -72,17 +62,12 @@ const ConveyancePage = ({
           date.getMonth() === selectedMonth.getMonth()
         );
       })
-      .filter(
-        (entry) => entry.employeeId === selectedEmployeeId,
-      )
+      .filter((entry) => entry.employeeId === selectedEmployeeId)
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [entries, selectedMonth, selectedEmployeeId]);
 
   const totalBill = useMemo(() => {
-    return monthlyEntries.reduce(
-      (sum, entry) => sum + entry.bill,
-      0,
-    );
+    return monthlyEntries.reduce((sum, entry) => sum + entry.bill, 0);
   }, [monthlyEntries]);
 
   const handleAdd = () => {
@@ -95,10 +80,32 @@ const ConveyancePage = ({
     setFormOpen(true);
   };
 
-const handleSave = async (entry: ConveyanceEntry) => {
-  if (editingEntry) {
-    const result = await updateConveyance({
-      id: entry.id,
+  const handleSave = async (entry: ConveyanceEntry) => {
+    if (editingEntry) {
+      const result = await updateConveyance({
+        id: entry.id,
+        employeeId: entry.employeeId,
+        date: entry.date,
+        from: entry.from,
+        to: entry.to,
+        bill: entry.bill,
+        remarks: entry.remarks,
+      });
+
+      if (!result.success || !result.data) {
+        window.alert(result.message || "Failed to update conveyance.");
+        return;
+      }
+
+      setEntries((prev) =>
+        prev.map((item) => (item.id === result.data!.id ? result.data! : item)),
+      );
+
+      setEditingEntry(null);
+      return;
+    }
+
+    const result = await createConveyance({
       employeeId: entry.employeeId,
       date: entry.date,
       from: entry.from,
@@ -108,55 +115,32 @@ const handleSave = async (entry: ConveyanceEntry) => {
     });
 
     if (!result.success || !result.data) {
-      window.alert(
-        result.message || "Failed to update conveyance.",
-      );
+      window.alert(result.message || "Failed to add conveyance.");
       return;
     }
 
-    setEntries((prev) =>
-      prev.map((item) =>
-        item.id === result.data!.id
-          ? result.data!
-          : item,
-      ),
-    );
+    setEntries((prev) => [...prev, result.data!]);
 
     setEditingEntry(null);
-    return;
-  }
+  };
 
-  const result = await createConveyance({
-    employeeId: entry.employeeId,
-    date: entry.date,
-    from: entry.from,
-    to: entry.to,
-    bill: entry.bill,
-    remarks: entry.remarks,
-  });
-
-  if (!result.success || !result.data) {
-    window.alert(
-      result.message || "Failed to add conveyance.",
-    );
-    return;
-  }
-
-  setEntries((prev) => [...prev, result.data!]);
-
-  setEditingEntry(null);
-};
-
-  const handleDelete = (entry: ConveyanceEntry) => {
+  const handleDelete = async (id: string) => {
     const confirmed = window.confirm(
-      `Delete conveyance entry for ${entry.date}?`,
+      "Are you sure you want to delete this conveyance?",
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
-    setEntries((prev) =>
-      prev.filter((item) => item.id !== entry.id),
-    );
+    const result = await deleteConveyance(id);
+
+    if (!result.success) {
+      window.alert(result.message || "Failed to delete conveyance.");
+      return;
+    }
+
+    setEntries((prev) => prev.filter((entry) => entry.id !== id));
   };
 
   const handlePrint = () => {
@@ -180,11 +164,7 @@ const handleSave = async (entry: ConveyanceEntry) => {
   });
 
   if (!selectedEmployee) {
-    return (
-      <div className="p-10 text-center">
-        No employee found.
-      </div>
-    );
+    return <div className="p-10 text-center">No employee found.</div>;
   }
 
   return (
@@ -210,11 +190,7 @@ const handleSave = async (entry: ConveyanceEntry) => {
         <div className="flex flex-wrap items-center gap-2">
           <ConveyanceMonthSelector month={month} />
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrint}
-          >
+          <Button type="button" variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 size-4" />
             Print
           </Button>
@@ -233,13 +209,10 @@ const handleSave = async (entry: ConveyanceEntry) => {
       {/* Employee Selector */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            Employees
-          </CardTitle>
+          <CardTitle className="text-lg">Employees</CardTitle>
 
           <p className="text-sm text-muted-foreground">
-            Select an employee to view their conveyance
-            history.
+            Select an employee to view their conveyance history.
           </p>
         </CardHeader>
 
@@ -257,34 +230,24 @@ const handleSave = async (entry: ConveyanceEntry) => {
         <CardContent className="pt-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xl font-bold">
-                {selectedEmployee.name}
-              </p>
+              <p className="text-xl font-bold">{selectedEmployee.name}</p>
 
               <p className="text-sm text-muted-foreground">
                 {selectedEmployee.designation}
               </p>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                {monthName}
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{monthName}</p>
             </div>
 
             <div className="flex gap-6">
               <div>
-                <p className="text-xs text-muted-foreground">
-                  Total Trips
-                </p>
+                <p className="text-xs text-muted-foreground">Total Trips</p>
 
-                <p className="text-xl font-bold">
-                  {monthlyEntries.length}
-                </p>
+                <p className="text-xl font-bold">{monthlyEntries.length}</p>
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground">
-                  Total Bill
-                </p>
+                <p className="text-xs text-muted-foreground">Total Bill</p>
 
                 <p className="text-xl font-bold">
                   ৳{totalBill.toLocaleString("en-BD")}
@@ -298,14 +261,12 @@ const handleSave = async (entry: ConveyanceEntry) => {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            Conveyance History
-          </CardTitle>
+          <CardTitle className="text-lg">Conveyance History</CardTitle>
 
           <p className="text-sm text-muted-foreground">
             {monthlyEntries.length}{" "}
-            {monthlyEntries.length === 1 ? "trip" : "trips"}{" "}
-            recorded for {monthName}.
+            {monthlyEntries.length === 1 ? "trip" : "trips"} recorded for{" "}
+            {monthName}.
           </p>
         </CardHeader>
 
@@ -314,9 +275,7 @@ const handleSave = async (entry: ConveyanceEntry) => {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <ReceiptText className="size-10 text-muted-foreground/40" />
 
-              <p className="mt-3 font-medium">
-                No conveyance data found
-              </p>
+              <p className="mt-3 font-medium">No conveyance data found</p>
 
               <p className="mt-1 text-sm text-muted-foreground">
                 Add a conveyance entry for this employee.

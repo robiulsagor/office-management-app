@@ -9,7 +9,7 @@ import { format } from "date-fns";
 type ConveyanceTableProps = {
   entries: ConveyanceEntry[];
   onEdit: (entry: ConveyanceEntry) => void;
-  onDelete: (entry: ConveyanceEntry) => void;
+   onDelete: (id: string) => void;
 };
 
 const ConveyanceTable = ({
@@ -87,7 +87,7 @@ const ConveyanceTable = ({
                     variant="ghost"
                     size="icon"
                     className="text-muted-foreground hover:text-destructive"
-                    onClick={() => onDelete(entry)}
+                   onClick={() => onDelete(entry.id)}
                   >
                     <Trash2 className="size-4" />
                   </Button>
