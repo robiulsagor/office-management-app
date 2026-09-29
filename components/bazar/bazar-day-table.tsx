@@ -69,7 +69,6 @@ const BazarDayTable = ({
 
         <tbody className="divide-y">
           {entries.map((entry) => {
-            console.log("Entry:", entry.type); // Debugging line to check the entry object
             const expense = entry.items.reduce(
               (sum, item) => sum + item.price,
               0,

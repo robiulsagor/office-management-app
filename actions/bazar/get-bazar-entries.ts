@@ -57,14 +57,6 @@ export async function getBazarEntries(month: string): Promise<{
       },
     });
 
-    console.log(
-      "BAZAR DB ENTRIES:",
-      entries.map((entry) => ({
-        id: entry.id,
-        type: entry.type,
-      })),
-    );
-
     return {
       success: true,
       data: entries.map((entry) => ({
