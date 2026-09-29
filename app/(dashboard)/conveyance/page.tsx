@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { getConveyanceData } from "@/actions/conveyance/get-conveyance-data";
 import ConveyancePage from "@/components/conveyance/conveyance-page";
 
 type PageProps = {
@@ -29,7 +30,21 @@ const Page = async ({
     );
   }
 
-  return <ConveyancePage month={month} />;
+  const data = await getConveyanceData(month);
+
+  if (!data.success) {
+    throw new Error(
+      data.message || "Failed to load conveyance data.",
+    );
+  }
+
+  return (
+    <ConveyancePage
+      month={month}
+      employees={data.employees}
+      initialEntries={data.entries}
+    />
+  );
 };
 
 export default Page;

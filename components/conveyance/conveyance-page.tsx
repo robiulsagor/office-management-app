@@ -1,25 +1,31 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {  Plus, Printer, ReceiptText } from "lucide-react";
+
+import { Plus, Printer, ReceiptText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-import {  ConveyanceEntry } from "@/types/conveyance";
+import {
+  ConveyanceEmployee,
+  ConveyanceEntry,
+} from "@/types/conveyance";
 
 import ConveyanceEmployeeSelector from "./conveyance-employee-selector";
 import ConveyanceTable from "./conveyance-table";
 import ConveyanceFormDialog from "./conveyance-form-dialog";
-
-import {
-  conveyanceEmployees,
-  initialConveyanceData,
-} from "./conveyance-mock-data";
 import ConveyanceMonthSelector from "./conveyance-month-selector";
 
 type ConveyancePageProps = {
   month: string;
+  employees: ConveyanceEmployee[];
+  initialEntries: ConveyanceEntry[];
 };
 
 const getMonthDate = (month: string) => {
@@ -28,24 +34,29 @@ const getMonthDate = (month: string) => {
   return new Date(year, monthNumber - 1, 1);
 };
 
-const ConveyancePage = ({ month }: ConveyancePageProps) => {
-  const selectedMonth = useMemo(() => getMonthDate(month), [month]);
+const ConveyancePage = ({
+  month,
+  employees,
+  initialEntries,
+}: ConveyancePageProps) => {
+  const selectedMonth = useMemo(
+    () => getMonthDate(month),
+    [month],
+  );
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
-    conveyanceEmployees[0]?.id ?? "",
+    employees[0]?.id ?? "",
   );
 
-  const [entries, setEntries] = useState<ConveyanceEntry[]>(
-    initialConveyanceData,
-  );
+  const [entries, setEntries] =
+    useState<ConveyanceEntry[]>(initialEntries);
 
   const [formOpen, setFormOpen] = useState(false);
 
-  const [editingEntry, setEditingEntry] = useState<ConveyanceEntry | null>(
-    null,
-  );
+  const [editingEntry, setEditingEntry] =
+    useState<ConveyanceEntry | null>(null);
 
-  const selectedEmployee = conveyanceEmployees.find(
+  const selectedEmployee = employees.find(
     (employee) => employee.id === selectedEmployeeId,
   );
 
@@ -59,12 +70,17 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
           date.getMonth() === selectedMonth.getMonth()
         );
       })
-      .filter((entry) => entry.employeeId === selectedEmployeeId)
+      .filter(
+        (entry) => entry.employeeId === selectedEmployeeId,
+      )
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [entries, selectedMonth, selectedEmployeeId]);
 
   const totalBill = useMemo(() => {
-    return monthlyEntries.reduce((sum, entry) => sum + entry.bill, 0);
+    return monthlyEntries.reduce(
+      (sum, entry) => sum + entry.bill,
+      0,
+    );
   }, [monthlyEntries]);
 
   const handleAdd = () => {
@@ -79,10 +95,14 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
 
   const handleSave = (entry: ConveyanceEntry) => {
     setEntries((prev) => {
-      const exists = prev.some((item) => item.id === entry.id);
+      const exists = prev.some(
+        (item) => item.id === entry.id,
+      );
 
       if (exists) {
-        return prev.map((item) => (item.id === entry.id ? entry : item));
+        return prev.map((item) =>
+          item.id === entry.id ? entry : item,
+        );
       }
 
       return [...prev, entry];
@@ -98,7 +118,9 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
 
     if (!confirmed) return;
 
-    setEntries((prev) => prev.filter((item) => item.id !== entry.id));
+    setEntries((prev) =>
+      prev.filter((item) => item.id !== entry.id),
+    );
   };
 
   const handlePrint = () => {
@@ -122,7 +144,11 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
   });
 
   if (!selectedEmployee) {
-    return <div className="p-10 text-center">No employee found.</div>;
+    return (
+      <div className="p-10 text-center">
+        No employee found.
+      </div>
+    );
   }
 
   return (
@@ -146,14 +172,13 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* 
-            We will connect your existing
-            month selector here in the next step.
-          */}
-
           <ConveyanceMonthSelector month={month} />
 
-          <Button type="button" variant="outline" onClick={handlePrint}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePrint}
+          >
             <Printer className="mr-2 size-4" />
             Print
           </Button>
@@ -172,16 +197,19 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
       {/* Employee Selector */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Employees</CardTitle>
+          <CardTitle className="text-lg">
+            Employees
+          </CardTitle>
 
           <p className="text-sm text-muted-foreground">
-            Select an employee to view their conveyance history.
+            Select an employee to view their conveyance
+            history.
           </p>
         </CardHeader>
 
         <CardContent>
           <ConveyanceEmployeeSelector
-            employees={conveyanceEmployees}
+            employees={employees}
             selectedEmployeeId={selectedEmployeeId}
             onEmployeeChange={setSelectedEmployeeId}
           />
@@ -193,24 +221,34 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
         <CardContent className="pt-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xl font-bold">{selectedEmployee.name}</p>
+              <p className="text-xl font-bold">
+                {selectedEmployee.name}
+              </p>
 
               <p className="text-sm text-muted-foreground">
                 {selectedEmployee.designation}
               </p>
 
-              <p className="mt-1 text-sm text-muted-foreground">{monthName}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {monthName}
+              </p>
             </div>
 
             <div className="flex gap-6">
               <div>
-                <p className="text-xs text-muted-foreground">Total Trips</p>
+                <p className="text-xs text-muted-foreground">
+                  Total Trips
+                </p>
 
-                <p className="text-xl font-bold">{monthlyEntries.length}</p>
+                <p className="text-xl font-bold">
+                  {monthlyEntries.length}
+                </p>
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground">Total Bill</p>
+                <p className="text-xs text-muted-foreground">
+                  Total Bill
+                </p>
 
                 <p className="text-xl font-bold">
                   ৳{totalBill.toLocaleString("en-BD")}
@@ -224,12 +262,14 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Conveyance History</CardTitle>
+          <CardTitle className="text-lg">
+            Conveyance History
+          </CardTitle>
 
           <p className="text-sm text-muted-foreground">
             {monthlyEntries.length}{" "}
-            {monthlyEntries.length === 1 ? "trip" : "trips"} recorded for{" "}
-            {monthName}.
+            {monthlyEntries.length === 1 ? "trip" : "trips"}{" "}
+            recorded for {monthName}.
           </p>
         </CardHeader>
 
@@ -238,7 +278,9 @@ const ConveyancePage = ({ month }: ConveyancePageProps) => {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <ReceiptText className="size-10 text-muted-foreground/40" />
 
-              <p className="mt-3 font-medium">No conveyance data found</p>
+              <p className="mt-3 font-medium">
+                No conveyance data found
+              </p>
 
               <p className="mt-1 text-sm text-muted-foreground">
                 Add a conveyance entry for this employee.

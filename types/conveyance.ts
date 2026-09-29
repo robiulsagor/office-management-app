@@ -11,4 +11,6 @@ export type ConveyanceEntry = {
   from: string;
   to: string;
   bill: number;
+  remarks?: string;
+  createdById?: string;
 };
