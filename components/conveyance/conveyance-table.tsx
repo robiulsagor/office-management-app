@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ConveyanceEntry } from "@/types/conveyance";
+import { format } from "date-fns";
 
 type ConveyanceTableProps = {
   entries: ConveyanceEntry[];
@@ -55,7 +56,7 @@ const ConveyanceTable = ({
               className="border-b last:border-b-0 hover:bg-slate-50/50"
             >
               <td className="px-4 py-3 text-sm">
-                {entry.date}
+                {format(entry.date, "dd-MM-yyyy")}
               </td>
 
               <td className="px-4 py-3 text-sm">

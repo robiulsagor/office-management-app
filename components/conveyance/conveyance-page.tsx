@@ -21,6 +21,8 @@ import ConveyanceEmployeeSelector from "./conveyance-employee-selector";
 import ConveyanceTable from "./conveyance-table";
 import ConveyanceFormDialog from "./conveyance-form-dialog";
 import ConveyanceMonthSelector from "./conveyance-month-selector";
+import { createConveyance } from "@/actions/conveyance/create-conveyance";
+import { updateConveyance } from "@/actions/conveyance/update-conveyance";
 
 type ConveyancePageProps = {
   month: string;
@@ -93,23 +95,57 @@ const ConveyancePage = ({
     setFormOpen(true);
   };
 
-  const handleSave = (entry: ConveyanceEntry) => {
-    setEntries((prev) => {
-      const exists = prev.some(
-        (item) => item.id === entry.id,
-      );
-
-      if (exists) {
-        return prev.map((item) =>
-          item.id === entry.id ? entry : item,
-        );
-      }
-
-      return [...prev, entry];
+const handleSave = async (entry: ConveyanceEntry) => {
+  if (editingEntry) {
+    const result = await updateConveyance({
+      id: entry.id,
+      employeeId: entry.employeeId,
+      date: entry.date,
+      from: entry.from,
+      to: entry.to,
+      bill: entry.bill,
+      remarks: entry.remarks,
     });
 
+    if (!result.success || !result.data) {
+      window.alert(
+        result.message || "Failed to update conveyance.",
+      );
+      return;
+    }
+
+    setEntries((prev) =>
+      prev.map((item) =>
+        item.id === result.data!.id
+          ? result.data!
+          : item,
+      ),
+    );
+
     setEditingEntry(null);
-  };
+    return;
+  }
+
+  const result = await createConveyance({
+    employeeId: entry.employeeId,
+    date: entry.date,
+    from: entry.from,
+    to: entry.to,
+    bill: entry.bill,
+    remarks: entry.remarks,
+  });
+
+  if (!result.success || !result.data) {
+    window.alert(
+      result.message || "Failed to add conveyance.",
+    );
+    return;
+  }
+
+  setEntries((prev) => [...prev, result.data!]);
+
+  setEditingEntry(null);
+};
 
   const handleDelete = (entry: ConveyanceEntry) => {
     const confirmed = window.confirm(

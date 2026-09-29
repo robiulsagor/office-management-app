@@ -25,7 +25,7 @@ type ConveyanceFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   selectedEmployee: ConveyanceEmployee;
   editingEntry: ConveyanceEntry | null;
-  onSave: (entry: ConveyanceEntry) => void;
+ onSave: (entry: ConveyanceEntry) => Promise<void>;
 };
 
 const ConveyanceFormDialog = ({
@@ -39,8 +39,19 @@ const ConveyanceFormDialog = ({
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [bill, setBill] = useState("");
+  const [remarks, setRemarks] = useState("");
 
   const isEditing = Boolean(editingEntry);
+
+  const getToday = () => {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
   useEffect(() => {
     if (!open) return;
@@ -51,49 +62,50 @@ const ConveyanceFormDialog = ({
       setFrom(editingEntry.from);
       setTo(editingEntry.to);
       setBill(String(editingEntry.bill));
+      setRemarks(editingEntry.remarks ?? "");
     } else {
-      setDate("");
+      setDate(getToday());
       setFrom("");
       setTo("");
       setBill("");
+      setRemarks("");
     }
   }, [open, editingEntry]);
 
-  const handleSubmit = (
-    e: React.FormEvent,
-  ) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!date || !from.trim() || !to.trim()) {
-      return;
-    }
+  if (!date || !from.trim() || !to.trim()) {
+    return;
+  }
 
-    const entry: ConveyanceEntry = {
-      id:
-        editingEntry?.id ??
-        crypto.randomUUID(),
-      employeeId: selectedEmployee.id,
-      date,
-      from: from.trim(),
-      to: to.trim(),
-      bill: Number(bill) || 0,
-    };
+  const billAmount = Number(bill);
 
-    onSave(entry);
-    onOpenChange(false);
+  if (!Number.isFinite(billAmount) || billAmount < 0) {
+    return;
+  }
+
+  const entry: ConveyanceEntry = {
+    id: editingEntry?.id ?? crypto.randomUUID(),
+    employeeId: selectedEmployee.id,
+    date,
+    from: from.trim(),
+    to: to.trim(),
+    bill: billAmount,
+    remarks: remarks.trim(),
+    createdById: editingEntry?.createdById,
   };
 
+  await onSave(entry);
+  onOpenChange(false);
+};
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEditing
-              ? "Edit Conveyance"
-              : "Add Conveyance"}
+            {isEditing ? "Edit Conveyance" : "Add Conveyance"}
           </DialogTitle>
 
           <DialogDescription>
@@ -103,11 +115,7 @@ const ConveyanceFormDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
-          {/* Employee */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="rounded-lg border bg-slate-50 p-3">
             <p className="text-xs text-muted-foreground">
               Employee
@@ -122,7 +130,6 @@ const ConveyanceFormDialog = ({
             </p>
           </div>
 
-          {/* Date */}
           <div className="space-y-2">
             <Label htmlFor="conveyance-date">
               Date
@@ -132,13 +139,10 @@ const ConveyanceFormDialog = ({
               id="conveyance-date"
               type="date"
               value={date}
-              onChange={(e) =>
-                setDate(e.target.value)
-              }
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
 
-          {/* From / To */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="conveyance-from">
@@ -149,9 +153,7 @@ const ConveyanceFormDialog = ({
                 id="conveyance-from"
                 placeholder="e.g. Uttara Office"
                 value={from}
-                onChange={(e) =>
-                  setFrom(e.target.value)
-                }
+                onChange={(e) => setFrom(e.target.value)}
               />
             </div>
 
@@ -164,14 +166,24 @@ const ConveyanceFormDialog = ({
                 id="conveyance-to"
                 placeholder="e.g. Motijheel"
                 value={to}
-                onChange={(e) =>
-                  setTo(e.target.value)
-                }
+                onChange={(e) => setTo(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Bill */}
+          <div className="space-y-2">
+            <Label htmlFor="conveyance-remarks">
+              Remarks
+            </Label>
+
+            <Input
+              id="conveyance-remarks"
+              placeholder="e.g. Client visit, office work"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="conveyance-bill">
               Bill
@@ -184,9 +196,7 @@ const ConveyanceFormDialog = ({
               step="0.01"
               placeholder="0"
               value={bill}
-              onChange={(e) =>
-                setBill(e.target.value)
-              }
+              onChange={(e) => setBill(e.target.value)}
             />
           </div>
 
@@ -194,9 +204,7 @@ const ConveyanceFormDialog = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                onOpenChange(false)
-              }
+              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
