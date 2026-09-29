@@ -2,6 +2,7 @@ import { getDashboardData } from "@/actions/dashboard/get-dashboard-data";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import DashboardSummary from "@/components/dashboard/dashboard-summary";
 import QuickActions from "@/components/dashboard/quick-actions";
+import RecentBazar from "@/components/dashboard/recent-bazar";
 import RecentExpenses from "@/components/dashboard/recent-expenses";
 
 const Dashboard = async () => {
@@ -18,7 +19,11 @@ const Dashboard = async () => {
         monthlyBazar={data.summary.monthlyBazar}
       />
 
-      <RecentExpenses expenses={data.recentExpenses} />
+      <section className="grid gap-6 xl:grid-cols-2">
+        <RecentExpenses expenses={data.recentExpenses} />
+        <RecentBazar entries={data.recentBazar} />
+      </section>
+      
       <QuickActions />
     </div>
   );

@@ -83,5 +83,17 @@ export async function getDashboardData() {
       amount: Number(expense.amount),
       description: expense.description,
     })),
+
+    recentBazar: bazarEntries.slice(0, 5).map((entry) => ({
+      id: entry.id,
+      date: entry.date,
+      items: entry.items.map((item) => ({
+        name: item.name,
+        nameEn: item.nameEn,
+        nameBn: item.nameBn,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+    })),
   };
 }

@@ -1,4 +1,6 @@
 import { format } from "date-fns";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 type RecentExpense = {
   id: string;
@@ -12,16 +14,26 @@ type RecentExpensesProps = {
   expenses: RecentExpense[];
 };
 
-const RecentExpenses = ({
-  expenses,
-}: RecentExpensesProps) => {
+const RecentExpenses = ({ expenses }: RecentExpensesProps) => {
+  const monthName = format(new Date(), "MMMM yyyy");
+
   return (
     <div className="rounded-xl border bg-card">
-      <div className="border-b p-5">
-        <h2 className="font-semibold">Recent Expenses</h2>
-        <p className="text-sm text-muted-foreground">
-          Latest expenses from this month
-        </p>
+      <div className="flex items-center justify-between gap-3 border-b p-5">
+        <div>
+          <h2 className="font-semibold">Recent Expenses</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Latest expenses for {monthName}
+          </p>
+        </div>
+
+        <Link
+          href="/expenses"
+          className="flex shrink-0 items-center gap-1 text-sm font-medium hover:underline"
+        >
+          View all
+          <ArrowRight className="size-4" />
+        </Link>
       </div>
 
       <div className="divide-y">
@@ -36,9 +48,7 @@ const RecentExpenses = ({
               className="flex items-center justify-between gap-4 p-5"
             >
               <div className="min-w-0">
-                <p className="font-medium">
-                  {expense.categoryName}
-                </p>
+                <p className="font-medium">{expense.categoryName}</p>
 
                 <p className="truncate text-sm text-muted-foreground">
                   {expense.description || "No description"} ·{" "}
