@@ -7,10 +7,7 @@ export const orderFormSchema = z.object({
   .string()
   .min(1, "Programme is required."),
 
-  poNumber: z
-    .string()
-    .trim()
-    .optional(),
+  purchaseOrderId: z.string().optional(),
 
   styleNumber: z
     .string()

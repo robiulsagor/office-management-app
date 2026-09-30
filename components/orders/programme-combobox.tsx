@@ -48,17 +48,13 @@ export default function ProgrammeCombobox({
   value,
   onChange,
 }: ProgrammeComboboxProps) {
-  const [programmes, setProgrammes] = useState<
-    Programme[]
-  >([]);
+  const [programmes, setProgrammes] = useState<Programme[]>([]);
 
   const [open, setOpen] = useState(false);
 
-  const [addDialogOpen, setAddDialogOpen] =
-    useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  const [newProgrammeName, setNewProgrammeName] =
-    useState("");
+  const [newProgrammeName, setNewProgrammeName] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -75,8 +71,7 @@ export default function ProgrammeCombobox({
     async function loadProgrammes() {
       setLoading(true);
 
-      const result =
-        await getOrderProgrammes(buyerId);
+      const result = await getOrderProgrammes(buyerId);
 
       if (result.success) {
         setProgrammes(result.programmes);
@@ -89,7 +84,7 @@ export default function ProgrammeCombobox({
   }, [buyerId]);
 
   const selectedProgramme = programmes.find(
-    (programme) => programme.id === value
+    (programme) => programme.id === value,
   );
 
   function handleSelect(programme: Programme) {
@@ -120,27 +115,18 @@ export default function ProgrammeCombobox({
     setError("");
     setAdding(true);
 
-    const result = await createProgramme(
-      buyerId,
-      newProgrammeName
-    );
+    const result = await createProgramme(buyerId, newProgrammeName);
 
     setAdding(false);
 
     if (!result.success) {
-      setError(
-        result.message ??
-          "Failed to create programme."
-      );
+      setError(result.message ?? "Failed to create programme.");
 
       return;
     }
 
     if (result.programme) {
-      setProgrammes((current) => [
-        ...current,
-        result.programme!,
-      ]);
+      setProgrammes((current) => [...current, result.programme!]);
 
       setCommandValue(result.programme.name);
 
@@ -153,10 +139,7 @@ export default function ProgrammeCombobox({
 
   return (
     <>
-      <Popover
-        open={open}
-        onOpenChange={handleOpenChange}
-      >
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger
           type="button"
           disabled={!buyerId}
@@ -166,47 +149,37 @@ export default function ProgrammeCombobox({
         >
           {loading
             ? "Loading..."
-            : selectedProgramme?.name ??
-              "Search programme..."}
+            : (selectedProgramme?.name ?? "Search programme...")}
 
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </PopoverTrigger>
 
         <PopoverContent
           align="start"
+          side="bottom"
+          sideOffset={4}
           className="w-(--radix-popover-trigger-width) p-0"
         >
-          <Command
-            value={commandValue}
-            onValueChange={setCommandValue}
-          >
+          <Command value={commandValue} onValueChange={setCommandValue}>
             <CommandInput placeholder="Search programme..." />
 
             <CommandList>
               {loading ? (
-                <CommandEmpty>
-                  Loading programmes...
-                </CommandEmpty>
+                <CommandEmpty>Loading programmes...</CommandEmpty>
               ) : (
                 <>
-                  <CommandEmpty>
-                    No programme found.
-                  </CommandEmpty>
+                  <CommandEmpty>No programme found.</CommandEmpty>
 
                   <CommandGroup>
                     {programmes.map((programme) => (
                       <CommandItem
                         key={programme.id}
                         value={programme.name}
-                        onSelect={() =>
-                          handleSelect(programme)
-                        }
+                        onSelect={() => handleSelect(programme)}
                       >
                         <Check
                           className={`mr-2 h-4 w-4 ${
-                            value === programme.id
-                              ? "opacity-100"
-                              : "opacity-0"
+                            value === programme.id ? "opacity-100" : "opacity-0"
                           }`}
                         />
 
@@ -216,12 +189,9 @@ export default function ProgrammeCombobox({
 
                     <CommandItem
                       value="__add_new_programme__"
-                      onSelect={
-                        handleOpenAddProgramme
-                      }
+                      onSelect={handleOpenAddProgramme}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-
                       Add New Programme
                     </CommandItem>
                   </CommandGroup>
@@ -232,64 +202,42 @@ export default function ProgrammeCombobox({
         </PopoverContent>
       </Popover>
 
-      <Dialog
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-      >
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Add New Programme
-            </DialogTitle>
+            <DialogTitle>Add New Programme</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-2 py-2">
-            <label
-              htmlFor="newProgrammeName"
-              className="text-sm font-medium"
-            >
+            <label htmlFor="newProgrammeName" className="text-sm font-medium">
               Programme Name
             </label>
 
             <Input
               id="newProgrammeName"
               value={newProgrammeName}
-              onChange={(event) =>
-                setNewProgrammeName(
-                  event.target.value
-                )
-              }
+              onChange={(event) => setNewProgrammeName(event.target.value)}
               placeholder="Enter programme name"
             />
 
-            {error && (
-              <p className="text-sm text-red-500">
-                {error}
-              </p>
-            )}
+            {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                setAddDialogOpen(false)
-              }
+              onClick={() => setAddDialogOpen(false)}
             >
               Cancel
             </Button>
 
             <Button
               type="button"
-              disabled={
-                !newProgrammeName.trim() || adding
-              }
+              disabled={!newProgrammeName.trim() || adding}
               onClick={handleCreateProgramme}
             >
-              {adding
-                ? "Adding..."
-                : "Add Programme"}
+              {adding ? "Adding..." : "Add Programme"}
             </Button>
           </DialogFooter>
         </DialogContent>

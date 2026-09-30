@@ -6,22 +6,15 @@ import { prisma } from "@/lib/prisma";
 type CreateOrderData = {
   buyerId: string;
   programmeId: string;
-
-  poNumber?: string;
-
+  purchaseOrderId?: string;
   styleNumber: string;
   color: string;
-
   factory?: string;
-
   qtySet?: number;
   qtyPiece?: number;
-
   actualPrice?: number;
   factoryPrice?: number;
-
   shipDate?: string;
-
   status?:
     | "PENDING"
     | "CONFIRMED"
@@ -30,7 +23,6 @@ type CreateOrderData = {
     | "SHIPPED"
     | "COMPLETED"
     | "CANCELLED";
-
   remarks?: string;
 };
 
@@ -45,10 +37,9 @@ export async function createOrder(data: CreateOrderData) {
       };
     }
 
-    // --------------------------------------------------
-    // Required fields
-    // --------------------------------------------------
+    const createdById = session.user.id;
 
+    // 1. Validate required fields
     if (!data.buyerId) {
       return {
         success: false,
@@ -56,7 +47,7 @@ export async function createOrder(data: CreateOrderData) {
       };
     }
 
-    if (!data.programmeId?.trim()) {
+    if (!data.programmeId) {
       return {
         success: false,
         message: "Programme is required.",
@@ -70,280 +61,106 @@ export async function createOrder(data: CreateOrderData) {
       };
     }
 
-    // --------------------------------------------------
-    // Clean values
-    // --------------------------------------------------
-
-    const programmeName = data.programmeId.trim();
-    const poNumber = data.poNumber?.trim() || null;
-    const styleNumber = data.styleNumber.trim();
-    const color = data.color?.trim();
-
-    const factory = data.factory?.trim() || null;
-    const remarks = data.remarks?.trim() || null;
-
-    // --------------------------------------------------
-    // Validate numbers
-    // --------------------------------------------------
-
-    if (data.qtySet !== undefined && data.qtySet < 0) {
+    if (!data.color?.trim()) {
       return {
         success: false,
-        message: "Quantity set cannot be negative.",
+        message: "Color is required.",
       };
     }
 
-    if (data.qtyPiece !== undefined && data.qtyPiece < 0) {
+    // 2. Verify programme belongs to selected buyer
+    const programme = await prisma.programme.findFirst({
+      where: {
+        id: data.programmeId,
+        buyerId: data.buyerId,
+      },
+    });
+
+    if (!programme) {
       return {
         success: false,
-        message: "Quantity piece cannot be negative.",
+        message: "Invalid programme selected.",
       };
     }
 
-    if (data.actualPrice !== undefined && data.actualPrice < 0) {
-      return {
-        success: false,
-        message: "Actual price cannot be negative.",
-      };
-    }
-
-    if (data.factoryPrice !== undefined && data.factoryPrice < 0) {
-      return {
-        success: false,
-        message: "Factory price cannot be negative.",
-      };
-    }
-
-    // --------------------------------------------------
-    // Transaction
-    // --------------------------------------------------
-
-    const result = await prisma.$transaction(async (tx) => {
-      // ------------------------------------------------
-      // 1. Find Buyer
-      // ------------------------------------------------
-
-      const buyer = await tx.buyer.findUnique({
+    // 3. Verify PO belongs to selected programme
+    if (data.purchaseOrderId) {
+      const purchaseOrder = await prisma.purchaseOrder.findFirst({
         where: {
-          id: data.buyerId,
+          id: data.purchaseOrderId,
+          programmeId: data.programmeId,
         },
       });
 
-      if (!buyer) {
-        throw new Error("Invalid buyer.");
+      if (!purchaseOrder) {
+        return {
+          success: false,
+          message: "Invalid purchase order selected.",
+        };
       }
+    }
 
-      if (!buyer.isActive) {
-        throw new Error("This buyer is inactive.");
-      }
+    // 4. Create Style
+    const style = await prisma.style.create({
+      data: {
+        purchaseOrderId: data.purchaseOrderId || null,
+        styleNumber: data.styleNumber.trim(),
+        color: data.color.trim(),
+      },
+    });
 
-      // ------------------------------------------------
-      // 2. Find or Create Programme
-      // ------------------------------------------------
+    // 5. Calculate total values
+    const totalActualValue =
+      data.qtyPiece != null && data.actualPrice != null
+        ? data.qtyPiece * data.actualPrice
+        : null;
 
-      let programme = await tx.programme.findFirst({
-        where: {
-          buyerId: buyer.id,
-          name: programmeName,
-        },
-      });
+    const totalFactoryValue =
+      data.qtyPiece != null && data.factoryPrice != null
+        ? data.qtyPiece * data.factoryPrice
+        : null;
 
-      if (!programme) {
-        programme = await tx.programme.create({
-          data: {
-            buyerId: buyer.id,
-            name: programmeName,
-          },
-        });
-      }
+    // 6. Create Order
 
-      // ------------------------------------------------
-      // 3. Find or Create PO (only if provided)
-      // ------------------------------------------------
+    const order = await prisma.order.create({
+      data: {
+        styleId: style.id,
 
-      let purchaseOrder = null;
+        factory: data.factory?.trim() || null,
+        qtySet: data.qtySet ?? null,
+        qtyPiece: data.qtyPiece ?? null,
 
-      if (poNumber) {
-        purchaseOrder = await tx.purchaseOrder.findUnique({
-          where: {
-            programmeId_poNumber: {
-              programmeId: programme.id,
-              poNumber,
-            },
-          },
-        });
+        actualPrice: data.actualPrice ?? null,
+        factoryPrice: data.factoryPrice ?? null,
 
-        if (!purchaseOrder) {
-          purchaseOrder = await tx.purchaseOrder.create({
-            data: {
-              programmeId: programme.id,
-              poNumber,
-            },
-          });
-        }
-      }
+        totalActualValue,
+        totalFactoryValue,
 
-      // ------------------------------------------------
-      // 4. Create Style
-      // ------------------------------------------------
+        shipDate: data.shipDate ? new Date(data.shipDate) : null,
 
-      const style = await tx.style.create({
-        data: {
-          styleNumber,
-          color,
+        status: data.status ?? "PENDING",
+        remarks: data.remarks?.trim() || null,
 
-          ...(purchaseOrder && {
-            purchaseOrder: {
-              connect: {
-                id: purchaseOrder.id,
-              },
-            },
-          }),
-        },
-      });
-
-      // ------------------------------------------------
-      // 5. Calculate totals
-      // ------------------------------------------------
-
-      const totalActualValue =
-        data.qtyPiece !== undefined && data.actualPrice !== undefined
-          ? data.qtyPiece * data.actualPrice
-          : null;
-
-      const totalFactoryValue =
-        data.qtyPiece !== undefined && data.factoryPrice !== undefined
-          ? data.qtyPiece * data.factoryPrice
-          : null;
-
-      // ------------------------------------------------
-      // 6. Create Order
-      // ------------------------------------------------
-
-      const order = await tx.order.create({
-        data: {
-          styleId: style.id,
-
-          factory,
-
-          qtySet: data.qtySet ?? null,
-          qtyPiece: data.qtyPiece ?? null,
-
-          actualPrice: data.actualPrice ?? null,
-          factoryPrice: data.factoryPrice ?? null,
-
-          totalActualValue,
-          totalFactoryValue,
-
-          shipDate: data.shipDate
-            ? new Date(`${data.shipDate}T12:00:00`)
-            : null,
-
-          status: data.status ?? "PENDING",
-
-          remarks,
-
-          createdById: session.user.id,
-        },
-
-        include: {
-          style: {
-            include: {
-              purchaseOrder: {
-                include: {
-                  programme: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      // ------------------------------------------------
-      // 7. Version data
-      // ------------------------------------------------
-
-      const versionData = {
-        id: order.id,
-
-        buyerId: buyer.id,
-        buyerName: buyer.name,
-
-        programmeId: programme.id,
-        programmeName: programme.name,
-
-        purchaseOrderId: order.style.purchaseOrderId,
-        poNumber: order.style.purchaseOrder?.poNumber ?? null,
-
-        styleId: order.style.id,
-        styleNumber: order.style.styleNumber,
-        color: order.style.color,
-
-        factory: order.factory,
-
-        qtySet: order.qtySet,
-        qtyPiece: order.qtyPiece,
-
-        actualPrice: order.actualPrice?.toString() ?? null,
-        factoryPrice: order.factoryPrice?.toString() ?? null,
-
-        totalActualValue: order.totalActualValue?.toString() ?? null,
-
-        totalFactoryValue: order.totalFactoryValue?.toString() ?? null,
-
-        shipDate: order.shipDate?.toISOString() ?? null,
-
-        status: order.status,
-        remarks: order.remarks,
-      };
-
-      // ------------------------------------------------
-      // 8. Create Version
-      // ------------------------------------------------
-
-      const version = await tx.orderVersion.create({
-        data: {
-          orderId: order.id,
-          version: 1,
-          action: "CREATE",
-          data: versionData,
-          createdById: session.user.id,
-        },
-      });
-
-      // ------------------------------------------------
-      // 9. Create Audit Log
-      // ------------------------------------------------
-
-      await tx.orderAuditLog.create({
-        data: {
-          orderId: order.id,
-          action: "CREATE",
-          newValues: versionData,
-          actedById: session.user.id,
-        },
-      });
-
-      return {
-        orderId: order.id,
-        versionId: version.id,
-      };
+        createdById,
+      },
     });
 
     return {
       success: true,
-      message: "Order created successfully.",
-      orderId: result.orderId,
+      order: {
+        ...order,
+        actualPrice: order.actualPrice?.toNumber() ?? null,
+        factoryPrice: order.factoryPrice?.toNumber() ?? null,
+        totalActualValue: order.totalActualValue?.toNumber() ?? null,
+        totalFactoryValue: order.totalFactoryValue?.toNumber() ?? null,
+      },
     };
   } catch (error) {
     console.error("Create order error:", error);
 
     return {
       success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Something went wrong while creating the order.",
+      message: "Failed to create order.",
     };
   }
 }

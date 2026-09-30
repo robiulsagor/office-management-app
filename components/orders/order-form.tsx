@@ -7,6 +7,10 @@ import { orderFormSchema, type OrderFormValues } from "./order-form-schema";
 import { createOrder } from "@/actions/order/create-order";
 import BuyerCombobox from "./buyer-combobox";
 import ProgrammeCombobox from "./programme-combobox";
+import PurchaseOrderCombobox from "./purchase-order-combobox";
+import { Loader2 } from "lucide-react";
+import { Button } from "../ui/button";
+import toast from "react-hot-toast";
 
 export default function OrderForm() {
   const form = useForm<OrderFormValues>({
@@ -15,7 +19,7 @@ export default function OrderForm() {
     defaultValues: {
       buyerId: "",
       programmeId: "",
-      poNumber: "",
+      purchaseOrderId: "",
       styleNumber: "",
       color: "",
       factory: "",
@@ -44,10 +48,19 @@ export default function OrderForm() {
     name: "programmeId",
   });
 
+  const purchaseOrderId = useWatch({
+    control: form.control,
+    name: "purchaseOrderId",
+  });
+
   async function onSubmit(values: OrderFormValues) {
     const result = await createOrder(values);
 
     console.log(result);
+    if(result.success) {
+      form.reset();
+      toast.success("Order created successfully!");
+    }
   }
 
   return (
@@ -65,11 +78,19 @@ export default function OrderForm() {
 
             <BuyerCombobox
               value={buyerId}
-              onChange={(value) =>
+              onChange={(value) => {
                 form.setValue("buyerId", value, {
                   shouldValidate: true,
-                })
-              }
+                });
+
+                form.setValue("programmeId", "", {
+                  shouldValidate: true,
+                });
+
+                form.setValue("purchaseOrderId", "", {
+                  shouldValidate: true,
+                });
+              }}
             />
 
             {form.formState.errors.buyerId && (
@@ -91,11 +112,15 @@ export default function OrderForm() {
             <ProgrammeCombobox
               buyerId={buyerId}
               value={programmeId}
-              onChange={(value) =>
+              onChange={(value) => {
                 form.setValue("programmeId", value, {
                   shouldValidate: true,
-                })
-              }
+                });
+
+                form.setValue("purchaseOrderId", "", {
+                  shouldValidate: true,
+                });
+              }}
             />
 
             {form.formState.errors.programmeId && (
@@ -106,24 +131,29 @@ export default function OrderForm() {
           </div>
 
           {/* PO Number */}
-          <div>
+          <div className="mb-2 space-y-2">
             <label
-              htmlFor="poNumber"
-              className="mb-2 block text-sm font-medium"
+              htmlFor="purchaseOrderId"
+              className="mb-2 block text-sm font-medium "
             >
               PO Number
-              <span className="ml-1 text-xs text-muted-foreground">
-                (Optional)
-              </span>
             </label>
 
-            <input
-              id="poNumber"
-              type="text"
-              {...form.register("poNumber")}
-              className="h-10 w-full rounded-md border px-3 text-sm"
-              placeholder="PO number"
+            <PurchaseOrderCombobox
+              programmeId={programmeId}
+              value={purchaseOrderId ?? ""}
+              onChange={(value) =>
+                form.setValue("purchaseOrderId", value, {
+                  shouldValidate: true,
+                })
+              }
             />
+
+            {form.formState.errors.purchaseOrderId && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.purchaseOrderId.message}
+              </p>
+            )}
           </div>
 
           {/* Style Number */}
@@ -370,12 +400,33 @@ export default function OrderForm() {
 
       {/* Submit */}
       <div className="flex justify-end border-t pt-6">
-        <button
-          type="submit"
-          className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground"
-        >
-          Create Order
-        </button>
+       
+       <div className="flex justify-end gap-3">
+  <Button
+    type="button"
+    variant="outline"
+    onClick={() => form.reset()}
+    disabled={form.formState.isSubmitting}
+    className="cursor-pointer disabled:cursor-not-allowed"
+  >
+    Reset
+  </Button>
+
+  <Button
+    type="submit"
+    disabled={form.formState.isSubmitting}
+    className="cursor-pointer disabled:cursor-not-allowed"
+  >
+    {form.formState.isSubmitting ? (
+      <>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Creating...
+      </>
+    ) : (
+      "Create Order"
+    )}
+  </Button>
+</div>
       </div>
     </form>
   );
