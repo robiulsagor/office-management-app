@@ -327,14 +327,16 @@ enum OrderVersionAction {
 
 model Style {
   id              String @id @default(cuid())
-  purchaseOrderId String
+  purchaseOrderId String?
+
   styleNumber     String
+  color           String
 
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  orders        Order[]
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  orders          Order[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([purchaseOrderId])
 }
@@ -344,12 +346,11 @@ model PurchaseOrder {
   programmeId String
   poNumber    String
 
-  programme Programme @relation(fields: [programmeId], references: [id])
+  programme   Programme @relation(fields: [programmeId], references: [id])
+  styles      Style[]
 
-  styles Style[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([programmeId, poNumber])
   @@index([programmeId])
