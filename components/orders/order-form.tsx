@@ -1,31 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { orderFormSchema, type OrderFormValues } from "./order-form-schema";
-import { useEffect, useState } from "react";
-import { getOrderBuyers } from "@/actions/order/get-buyers";
+import { createOrder } from "@/actions/order/create-order";
+import BuyerCombobox from "./buyer-combobox";
 
 export default function OrderForm() {
-  const [buyers, setBuyers] = useState<{ id: string; name: string }[]>([]);
-
-  const [buyersLoading, setBuyersLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadBuyers() {
-      const result = await getOrderBuyers();
-
-      if (result.success) {
-        setBuyers(result.buyers);
-      }
-
-      setBuyersLoading(false);
-    }
-
-    loadBuyers();
-  }, []);
-
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
 
@@ -51,8 +33,15 @@ export default function OrderForm() {
     },
   });
 
-  function onSubmit(values: OrderFormValues) {
-    console.log(values);
+  const buyerId = useWatch({
+    control: form.control,
+    name: "buyerId",
+  });
+
+  async function onSubmit(values: OrderFormValues) {
+    const result = await createOrder(values);
+
+    console.log(result);
   }
 
   return (
@@ -68,22 +57,14 @@ export default function OrderForm() {
               Buyer
             </label>
 
-            <select
-              id="buyerId"
-              {...form.register("buyerId")}
-              disabled={buyersLoading}
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="">
-                {buyersLoading ? "Loading..." : "Select buyer"}
-              </option>
-
-              {buyers.map((buyer) => (
-                <option key={buyer.id} value={buyer.id}>
-                  {buyer.name}
-                </option>
-              ))}
-            </select>
+            <BuyerCombobox
+              value={buyerId}
+              onChange={(value) =>
+                form.setValue("buyerId", value, {
+                  shouldValidate: true,
+                })
+              }
+            />
 
             {form.formState.errors.buyerId && (
               <p className="mt-1 text-xs text-red-500">
@@ -318,7 +299,7 @@ export default function OrderForm() {
       </section>
 
       {/* Shipping */}
-     <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
+      <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Shipping & Status</h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -363,7 +344,7 @@ export default function OrderForm() {
       </section>
 
       {/* Remarks */}
-     <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
+      <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
         <div>
           <label htmlFor="remarks" className="mb-2 block text-sm font-medium">
             Remarks
