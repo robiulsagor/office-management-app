@@ -3,11 +3,17 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { orderFormSchema, type OrderFormValues } from "./order-form-schema";
+import {
+  orderFormSchema,
+  type OrderFormValues,
+} from "./order-form-schema";
+
 import { createOrder } from "@/actions/order/create-order";
+
 import BuyerCombobox from "./buyer-combobox";
 import ProgrammeCombobox from "./programme-combobox";
-import PurchaseOrderCombobox from "./purchase-order-combobox";
+import PurchaseOrderMultiCombobox from "./purchase-order-multi-combobox";
+
 import { Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
@@ -19,7 +25,8 @@ export default function OrderForm() {
     defaultValues: {
       buyerId: "",
       programmeId: "",
-      purchaseOrderId: "",
+      purchaseOrderIds: [],
+
       styleNumber: "",
       color: "",
       factory: "",
@@ -48,31 +55,42 @@ export default function OrderForm() {
     name: "programmeId",
   });
 
-  const purchaseOrderId = useWatch({
+  const purchaseOrderIds = useWatch({
     control: form.control,
-    name: "purchaseOrderId",
+    name: "purchaseOrderIds",
   });
 
   async function onSubmit(values: OrderFormValues) {
     const result = await createOrder(values);
 
     console.log(result);
-    if(result.success) {
+
+    if (result.success) {
       form.reset();
       toast.success("Order created successfully!");
+    } else {
+      toast.error(result.message ?? "Failed to create order.");
     }
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-8"
+    >
       {/* Basic Information */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Basic Information</h2>
+        <h2 className="text-lg font-semibold">
+          Basic Information
+        </h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {/* Buyer */}
           <div>
-            <label htmlFor="buyerId" className="mb-2 block text-sm font-medium">
+            <label
+              htmlFor="buyerId"
+              className="mb-2 block text-sm font-medium"
+            >
               Buyer
             </label>
 
@@ -87,7 +105,7 @@ export default function OrderForm() {
                   shouldValidate: true,
                 });
 
-                form.setValue("purchaseOrderId", "", {
+                form.setValue("purchaseOrderIds", [], {
                   shouldValidate: true,
                 });
               }}
@@ -103,7 +121,7 @@ export default function OrderForm() {
           {/* Programme */}
           <div>
             <label
-              htmlFor="programmeName"
+              htmlFor="programmeId"
               className="mb-2 block text-sm font-medium"
             >
               Programme
@@ -117,7 +135,7 @@ export default function OrderForm() {
                   shouldValidate: true,
                 });
 
-                form.setValue("purchaseOrderId", "", {
+                form.setValue("purchaseOrderIds", [], {
                   shouldValidate: true,
                 });
               }}
@@ -130,28 +148,28 @@ export default function OrderForm() {
             )}
           </div>
 
-          {/* PO Number */}
-          <div className="mb-2 space-y-2">
+          {/* Purchase Orders */}
+          <div>
             <label
-              htmlFor="purchaseOrderId"
-              className="mb-2 block text-sm font-medium "
+              htmlFor="purchaseOrderIds"
+              className="mb-2 block text-sm font-medium"
             >
               PO Number
             </label>
 
-            <PurchaseOrderCombobox
+            <PurchaseOrderMultiCombobox
               programmeId={programmeId}
-              value={purchaseOrderId ?? ""}
+              value={purchaseOrderIds}
               onChange={(value) =>
-                form.setValue("purchaseOrderId", value, {
+                form.setValue("purchaseOrderIds", value, {
                   shouldValidate: true,
                 })
               }
             />
 
-            {form.formState.errors.purchaseOrderId && (
-              <p className="text-sm text-red-500">
-                {form.formState.errors.purchaseOrderId.message}
+            {form.formState.errors.purchaseOrderIds && (
+              <p className="mt-1 text-xs text-red-500">
+                {form.formState.errors.purchaseOrderIds.message}
               </p>
             )}
           </div>
@@ -182,7 +200,10 @@ export default function OrderForm() {
 
           {/* Color */}
           <div>
-            <label htmlFor="color" className="mb-2 block text-sm font-medium">
+            <label
+              htmlFor="color"
+              className="mb-2 block text-sm font-medium"
+            >
               Color
             </label>
 
@@ -203,7 +224,10 @@ export default function OrderForm() {
 
           {/* Factory */}
           <div>
-            <label htmlFor="factory" className="mb-2 block text-sm font-medium">
+            <label
+              htmlFor="factory"
+              className="mb-2 block text-sm font-medium"
+            >
               Factory
             </label>
 
@@ -220,12 +244,17 @@ export default function OrderForm() {
 
       {/* Quantity & Price */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Quantity & Pricing</h2>
+        <h2 className="text-lg font-semibold">
+          Quantity & Pricing
+        </h2>
 
         <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
           {/* Qty Set */}
           <div>
-            <label htmlFor="qtySet" className="mb-2 block text-sm font-medium">
+            <label
+              htmlFor="qtySet"
+              className="mb-2 block text-sm font-medium"
+            >
               Qty (Set)
             </label>
 
@@ -338,7 +367,9 @@ export default function OrderForm() {
 
       {/* Shipping */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Shipping & Status</h2>
+        <h2 className="text-lg font-semibold">
+          Shipping & Status
+        </h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {/* Ship Date */}
@@ -360,7 +391,10 @@ export default function OrderForm() {
 
           {/* Status */}
           <div>
-            <label htmlFor="status" className="mb-2 block text-sm font-medium">
+            <label
+              htmlFor="status"
+              className="mb-2 block text-sm font-medium"
+            >
               Status
             </label>
 
@@ -371,8 +405,12 @@ export default function OrderForm() {
             >
               <option value="PENDING">Pending</option>
               <option value="CONFIRMED">Confirmed</option>
-              <option value="IN_PRODUCTION">In Production</option>
-              <option value="READY_TO_SHIP">Ready to Ship</option>
+              <option value="IN_PRODUCTION">
+                In Production
+              </option>
+              <option value="READY_TO_SHIP">
+                Ready to Ship
+              </option>
               <option value="SHIPPED">Shipped</option>
               <option value="COMPLETED">Completed</option>
               <option value="CANCELLED">Cancelled</option>
@@ -384,7 +422,10 @@ export default function OrderForm() {
       {/* Remarks */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
         <div>
-          <label htmlFor="remarks" className="mb-2 block text-sm font-medium">
+          <label
+            htmlFor="remarks"
+            className="mb-2 block text-sm font-medium"
+          >
             Remarks
           </label>
 
@@ -400,33 +441,32 @@ export default function OrderForm() {
 
       {/* Submit */}
       <div className="flex justify-end border-t pt-6">
-       
-       <div className="flex justify-end gap-3">
-  <Button
-    type="button"
-    variant="outline"
-    onClick={() => form.reset()}
-    disabled={form.formState.isSubmitting}
-    className="cursor-pointer disabled:cursor-not-allowed"
-  >
-    Reset
-  </Button>
+        <div className="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => form.reset()}
+            disabled={form.formState.isSubmitting}
+            className="cursor-pointer disabled:cursor-not-allowed"
+          >
+            Reset
+          </Button>
 
-  <Button
-    type="submit"
-    disabled={form.formState.isSubmitting}
-    className="cursor-pointer disabled:cursor-not-allowed"
-  >
-    {form.formState.isSubmitting ? (
-      <>
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Creating...
-      </>
-    ) : (
-      "Create Order"
-    )}
-  </Button>
-</div>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            className="cursor-pointer disabled:cursor-not-allowed"
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Create Order"
+            )}
+          </Button>
+        </div>
       </div>
     </form>
   );

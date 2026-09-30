@@ -7,7 +7,7 @@ export const orderFormSchema = z.object({
   .string()
   .min(1, "Programme is required."),
 
-  purchaseOrderId: z.string().optional(),
+  purchaseOrderIds: z.array(z.string()),
 
   styleNumber: z
     .string()

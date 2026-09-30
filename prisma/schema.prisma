@@ -327,17 +327,30 @@ enum OrderVersionAction {
 
 model Style {
   id              String @id @default(cuid())
-  purchaseOrderId String?
 
   styleNumber     String
   color           String
 
-  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
   orders          Order[]
+
+  purchaseOrders  StylePurchaseOrder[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  @@index([styleNumber])
+}
+
+model StylePurchaseOrder {
+  styleId         String
+  purchaseOrderId String
+
+  style           Style         @relation(fields: [styleId], references: [id], onDelete: Cascade)
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([styleId, purchaseOrderId])
   @@index([purchaseOrderId])
 }
 
@@ -347,10 +360,12 @@ model PurchaseOrder {
   poNumber    String
 
   programme   Programme @relation(fields: [programmeId], references: [id])
-  styles      Style[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  styles      StylePurchaseOrder[]
+  orders      Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([programmeId, poNumber])
   @@index([programmeId])
@@ -386,23 +401,23 @@ model Buyer {
 model Order {
   id String @id @default(cuid())
 
-  // Hierarchy
   styleId String
-  style   Style  @relation(fields: [styleId], references: [id])
+  style   Style @relation(fields: [styleId], references: [id])
 
-  // Order information
-  factory  String?
-  qtySet   Int?
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId],references: [id])
+
+  factory String?
+  qtySet Int?
   qtyPiece Int?
-
-  actualPrice       Decimal? @db.Decimal(12, 2)
-  factoryPrice      Decimal? @db.Decimal(12, 2)
-  totalActualValue  Decimal? @db.Decimal(14, 2)
+  actualPrice Decimal? @db.Decimal(12, 2)
+  factoryPrice Decimal? @db.Decimal(12, 2)
+  totalActualValue Decimal? @db.Decimal(14, 2)
   totalFactoryValue Decimal? @db.Decimal(14, 2)
 
   shipDate DateTime?
-  status   OrderStatus @default(PENDING)
-  remarks  String?
+  status OrderStatus @default(PENDING)
+  remarks String?
 
   // Created by
   createdById String

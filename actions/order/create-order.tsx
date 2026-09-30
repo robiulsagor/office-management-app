@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 type CreateOrderData = {
   buyerId: string;
   programmeId: string;
-  purchaseOrderId?: string;
+  purchaseOrderIds?: string[];
   styleNumber: string;
   color: string;
   factory?: string;
@@ -84,18 +84,26 @@ export async function createOrder(data: CreateOrderData) {
     }
 
     // 3. Verify PO belongs to selected programme
-    if (data.purchaseOrderId) {
-      const purchaseOrder = await prisma.purchaseOrder.findFirst({
+    const purchaseOrderIds = data.purchaseOrderIds ?? [];
+
+    if (purchaseOrderIds.length > 0) {
+      const purchaseOrders = await prisma.purchaseOrder.findMany({
         where: {
-          id: data.purchaseOrderId,
+          id: {
+            in: purchaseOrderIds,
+          },
           programmeId: data.programmeId,
+        },
+        select: {
+          id: true,
         },
       });
 
-      if (!purchaseOrder) {
+      if (purchaseOrders.length !== purchaseOrderIds.length) {
         return {
           success: false,
-          message: "Invalid purchase order selected.",
+          message:
+            "One or more selected purchase orders do not belong to this programme.",
         };
       }
     }
@@ -103,9 +111,14 @@ export async function createOrder(data: CreateOrderData) {
     // 4. Create Style
     const style = await prisma.style.create({
       data: {
-        purchaseOrderId: data.purchaseOrderId || null,
         styleNumber: data.styleNumber.trim(),
         color: data.color.trim(),
+
+        purchaseOrders: {
+          create: purchaseOrderIds.map((purchaseOrderId) => ({
+            purchaseOrderId,
+          })),
+        },
       },
     });
 
