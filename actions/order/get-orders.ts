@@ -11,18 +11,33 @@ export async function getOrders() {
       include: {
         style: {
           include: {
-            purchaseOrder: {
+            purchaseOrders: {
               include: {
-                programme: {
+                purchaseOrder: {
                   include: {
-                    buyer: true,
+                    programme: {
+                      include: {
+                        buyer: true,
+                      },
+                    },
                   },
                 },
               },
             },
           },
         },
+
+        purchaseOrder: {
+          include: {
+            programme: {
+              include: {
+                buyer: true,
+              },
+            },
+          },
+        },
       },
+
       orderBy: {
         createdAt: "desc",
       },
@@ -31,33 +46,11 @@ export async function getOrders() {
     return {
       success: true,
       orders: orders.map((order) => ({
-        id: order.id,
-
-        buyer: order.style.purchaseOrder?.programme.buyer.name ?? null,
-        programme: order.style.purchaseOrder?.programme.name ?? null,
-        poNumber: order.style.purchaseOrder?.poNumber ?? null,
-
-        styleNumber: order.style.styleNumber,
-        color: order.style.color,
-
-        factory: order.factory,
-
-        qtySet: order.qtySet,
-        qtyPiece: order.qtyPiece,
-
+        ...order,
         actualPrice: order.actualPrice?.toNumber() ?? null,
         factoryPrice: order.factoryPrice?.toNumber() ?? null,
-
         totalActualValue: order.totalActualValue?.toNumber() ?? null,
         totalFactoryValue: order.totalFactoryValue?.toNumber() ?? null,
-
-        shipDate: order.shipDate,
-        status: order.status,
-
-        remarks: order.remarks,
-
-        createdAt: order.createdAt,
-        updatedAt: order.updatedAt,
       })),
     };
   } catch (error) {

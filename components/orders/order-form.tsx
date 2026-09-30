@@ -3,10 +3,7 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import {
-  orderFormSchema,
-  type OrderFormValues,
-} from "./order-form-schema";
+import { orderFormSchema, type OrderFormValues } from "./order-form-schema";
 
 import { createOrder } from "@/actions/order/create-order";
 
@@ -17,6 +14,7 @@ import PurchaseOrderMultiCombobox from "./purchase-order-multi-combobox";
 import { Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
+import ColorCombobox from "./color-combobox";
 
 export default function OrderForm() {
   const form = useForm<OrderFormValues>({
@@ -60,6 +58,11 @@ export default function OrderForm() {
     name: "purchaseOrderIds",
   });
 
+  const color = useWatch({
+    control: form.control,
+    name: "color",
+  });
+
   async function onSubmit(values: OrderFormValues) {
     const result = await createOrder(values);
 
@@ -74,23 +77,15 @@ export default function OrderForm() {
   }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="space-y-8"
-    >
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
       {/* Basic Information */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">
-          Basic Information
-        </h2>
+        <h2 className="text-lg font-semibold">Basic Information</h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {/* Buyer */}
           <div>
-            <label
-              htmlFor="buyerId"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="buyerId" className="mb-2 block text-sm font-medium">
               Buyer
             </label>
 
@@ -200,19 +195,17 @@ export default function OrderForm() {
 
           {/* Color */}
           <div>
-            <label
-              htmlFor="color"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="color" className="mb-2 block text-sm font-medium">
               Color
             </label>
 
-            <input
-              id="color"
-              type="text"
-              {...form.register("color")}
-              className="h-10 w-full rounded-md border px-3 text-sm"
-              placeholder="Color"
+            <ColorCombobox
+              value={color}
+              onChange={(value) =>
+                form.setValue("color", value, {
+                  shouldValidate: true,
+                })
+              }
             />
 
             {form.formState.errors.color && (
@@ -224,10 +217,7 @@ export default function OrderForm() {
 
           {/* Factory */}
           <div>
-            <label
-              htmlFor="factory"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="factory" className="mb-2 block text-sm font-medium">
               Factory
             </label>
 
@@ -244,17 +234,12 @@ export default function OrderForm() {
 
       {/* Quantity & Price */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">
-          Quantity & Pricing
-        </h2>
+        <h2 className="text-lg font-semibold">Quantity & Pricing</h2>
 
         <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
           {/* Qty Set */}
           <div>
-            <label
-              htmlFor="qtySet"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="qtySet" className="mb-2 block text-sm font-medium">
               Qty (Set)
             </label>
 
@@ -367,9 +352,7 @@ export default function OrderForm() {
 
       {/* Shipping */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">
-          Shipping & Status
-        </h2>
+        <h2 className="text-lg font-semibold">Shipping & Status</h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {/* Ship Date */}
@@ -391,10 +374,7 @@ export default function OrderForm() {
 
           {/* Status */}
           <div>
-            <label
-              htmlFor="status"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="status" className="mb-2 block text-sm font-medium">
               Status
             </label>
 
@@ -405,12 +385,8 @@ export default function OrderForm() {
             >
               <option value="PENDING">Pending</option>
               <option value="CONFIRMED">Confirmed</option>
-              <option value="IN_PRODUCTION">
-                In Production
-              </option>
-              <option value="READY_TO_SHIP">
-                Ready to Ship
-              </option>
+              <option value="IN_PRODUCTION">In Production</option>
+              <option value="READY_TO_SHIP">Ready to Ship</option>
               <option value="SHIPPED">Shipped</option>
               <option value="COMPLETED">Completed</option>
               <option value="CANCELLED">Cancelled</option>
@@ -422,10 +398,7 @@ export default function OrderForm() {
       {/* Remarks */}
       <section className="space-y-5 rounded-xl border bg-white p-6 shadow-sm">
         <div>
-          <label
-            htmlFor="remarks"
-            className="mb-2 block text-sm font-medium"
-          >
+          <label htmlFor="remarks" className="mb-2 block text-sm font-medium">
             Remarks
           </label>
 

@@ -325,18 +325,26 @@ enum OrderVersionAction {
   DELETE
 }
 
+model Color {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
 model Style {
-  id              String @id @default(cuid())
+  id          String @id @default(cuid())
+  styleNumber String
+  color       String
 
-  styleNumber     String
-  color           String
+  orders         Order[]
+  purchaseOrders StylePurchaseOrder[]
 
-  orders          Order[]
-
-  purchaseOrders  StylePurchaseOrder[]
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([styleNumber])
 }
