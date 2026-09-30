@@ -3,10 +3,9 @@ import { z } from "zod";
 export const orderFormSchema = z.object({
   buyerId: z.string().min(1, "Buyer is required."),
 
-  programmeName: z
-    .string()
-    .trim()
-    .min(1, "Programme is required."),
+  programmeId: z
+  .string()
+  .min(1, "Programme is required."),
 
   poNumber: z
     .string()

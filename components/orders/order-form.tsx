@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { orderFormSchema, type OrderFormValues } from "./order-form-schema";
 import { createOrder } from "@/actions/order/create-order";
 import BuyerCombobox from "./buyer-combobox";
+import ProgrammeCombobox from "./programme-combobox";
 
 export default function OrderForm() {
   const form = useForm<OrderFormValues>({
@@ -13,7 +14,7 @@ export default function OrderForm() {
 
     defaultValues: {
       buyerId: "",
-      programmeName: "",
+      programmeId: "",
       poNumber: "",
       styleNumber: "",
       color: "",
@@ -36,6 +37,11 @@ export default function OrderForm() {
   const buyerId = useWatch({
     control: form.control,
     name: "buyerId",
+  });
+
+  const programmeId = useWatch({
+    control: form.control,
+    name: "programmeId",
   });
 
   async function onSubmit(values: OrderFormValues) {
@@ -82,17 +88,19 @@ export default function OrderForm() {
               Programme
             </label>
 
-            <input
-              id="programmeName"
-              type="text"
-              {...form.register("programmeName")}
-              className="h-10 w-full rounded-md border px-3 text-sm"
-              placeholder="Programme name"
+            <ProgrammeCombobox
+              buyerId={buyerId}
+              value={programmeId}
+              onChange={(value) =>
+                form.setValue("programmeId", value, {
+                  shouldValidate: true,
+                })
+              }
             />
 
-            {form.formState.errors.programmeName && (
+            {form.formState.errors.programmeId && (
               <p className="mt-1 text-xs text-red-500">
-                {form.formState.errors.programmeName.message}
+                {form.formState.errors.programmeId.message}
               </p>
             )}
           </div>

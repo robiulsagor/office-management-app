@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 type CreateOrderData = {
   buyerId: string;
-  programmeName: string;
+  programmeId: string;
 
   poNumber?: string;
 
@@ -56,7 +56,7 @@ export async function createOrder(data: CreateOrderData) {
       };
     }
 
-    if (!data.programmeName?.trim()) {
+    if (!data.programmeId?.trim()) {
       return {
         success: false,
         message: "Programme is required.",
@@ -74,7 +74,7 @@ export async function createOrder(data: CreateOrderData) {
     // Clean values
     // --------------------------------------------------
 
-    const programmeName = data.programmeName.trim();
+    const programmeName = data.programmeId.trim();
     const poNumber = data.poNumber?.trim() || null;
     const styleNumber = data.styleNumber.trim();
     const color = data.color?.trim();
