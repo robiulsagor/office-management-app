@@ -30,6 +30,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createBuyer } from "@/actions/order/create-buyer";
 
 type Buyer = {
   id: string;
@@ -47,6 +48,9 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newBuyerName, setNewBuyerName] = useState("");
+
+  const [addingBuyer, setAddingBuyer] = useState(false);
+  const [error, setError] = useState("");
 
   const [loading, setLoading] = useState(true);
 
@@ -156,6 +160,7 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
               placeholder="Enter buyer name"
             />
           </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
           <DialogFooter>
             <Button
@@ -166,8 +171,33 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
               Cancel
             </Button>
 
-            <Button type="button" disabled={!newBuyerName.trim()}>
-              Add Buyer
+            <Button
+              type="button"
+              disabled={!newBuyerName.trim() || addingBuyer}
+              onClick={async () => {
+                setError("");
+                setAddingBuyer(true);
+
+                const result = await createBuyer(newBuyerName);
+
+                setAddingBuyer(false);
+
+                if (!result.success) {
+                  setError(result.message ?? "Failed to create buyer.");
+                  return;
+                }
+
+                if (result.buyer) {
+                  setBuyers((current) => [...current, result.buyer]);
+
+                  onChange(result.buyer.id);
+                }
+
+                setAddDialogOpen(false);
+                setNewBuyerName("");
+              }}
+            >
+              {addingBuyer ? "Adding..." : "Add Buyer"}
             </Button>
           </DialogFooter>
         </DialogContent>
