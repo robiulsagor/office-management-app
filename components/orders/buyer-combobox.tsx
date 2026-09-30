@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import { getOrderBuyers } from "@/actions/order/get-buyers";
+import { createBuyer } from "@/actions/order/create-buyer";
 
 import {
   Command,
@@ -23,14 +24,13 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createBuyer } from "@/actions/order/create-buyer";
 
 type Buyer = {
   id: string;
@@ -42,20 +42,27 @@ type BuyerComboboxProps = {
   onChange: (value: string) => void;
 };
 
-export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
+export default function BuyerCombobox({
+  value,
+  onChange,
+}: BuyerComboboxProps) {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [open, setOpen] = useState(false);
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newBuyerName, setNewBuyerName] = useState("");
 
-  const [addingBuyer, setAddingBuyer] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
 
-  const [loading, setLoading] = useState(true);
+  // Controls which item Command highlights with keyboard
+  const [commandValue, setCommandValue] = useState("");
 
   useEffect(() => {
     async function loadBuyers() {
+      setLoading(true);
+
       const result = await getOrderBuyers();
 
       if (result.success) {
@@ -68,22 +75,64 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
     loadBuyers();
   }, []);
 
-  const selectedBuyer = buyers.find((buyer) => buyer.id === value);
+  const selectedBuyer = buyers.find(
+    (buyer) => buyer.id === value
+  );
 
   function handleSelect(buyer: Buyer) {
+    setCommandValue(buyer.name);
     onChange(buyer.id);
     setOpen(false);
   }
 
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+
+    if (nextOpen && selectedBuyer) {
+      setCommandValue(selectedBuyer.name);
+    }
+  }
+
   function handleOpenAddBuyer() {
     setNewBuyerName("");
+    setError("");
     setOpen(false);
     setAddDialogOpen(true);
   }
 
+  async function handleCreateBuyer() {
+    setError("");
+    setAdding(true);
+
+    const result = await createBuyer(newBuyerName);
+
+    setAdding(false);
+
+    if (!result.success) {
+      setError(result.message ?? "Failed to create buyer.");
+      return;
+    }
+
+    if (result.buyer) {
+      setBuyers((current) => [
+        ...current,
+        result.buyer!,
+      ]);
+
+      setCommandValue(result.buyer.name);
+      onChange(result.buyer.id);
+    }
+
+    setAddDialogOpen(false);
+    setNewBuyerName("");
+  }
+
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={handleOpenChange}
+      >
         <PopoverTrigger
           type="button"
           role="combobox"
@@ -99,26 +148,37 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
           align="start"
           className="w-(--radix-popover-trigger-width) p-0"
         >
-          <Command>
+          <Command
+            value={commandValue}
+            onValueChange={setCommandValue}
+          >
             <CommandInput placeholder="Search buyer..." />
 
             <CommandList>
               {loading ? (
-                <CommandEmpty>Loading buyers...</CommandEmpty>
+                <CommandEmpty>
+                  Loading buyers...
+                </CommandEmpty>
               ) : (
                 <>
-                  <CommandEmpty>No buyer found.</CommandEmpty>
+                  <CommandEmpty>
+                    No buyer found.
+                  </CommandEmpty>
 
                   <CommandGroup>
                     {buyers.map((buyer) => (
                       <CommandItem
                         key={buyer.id}
                         value={buyer.name}
-                        onSelect={() => handleSelect(buyer)}
+                        onSelect={() =>
+                          handleSelect(buyer)
+                        }
                       >
                         <Check
                           className={`mr-2 h-4 w-4 ${
-                            value === buyer.id ? "opacity-100" : "opacity-0"
+                            value === buyer.id
+                              ? "opacity-100"
+                              : "opacity-0"
                           }`}
                         />
 
@@ -131,6 +191,7 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
                       onSelect={handleOpenAddBuyer}
                     >
                       <Plus className="mr-2 h-4 w-4" />
+
                       Add New Buyer
                     </CommandItem>
                   </CommandGroup>
@@ -141,63 +202,60 @@ export default function BuyerCombobox({ value, onChange }: BuyerComboboxProps) {
         </PopoverContent>
       </Popover>
 
-      {/* Add Buyer Dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+      <Dialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Buyer</DialogTitle>
+            <DialogTitle>
+              Add New Buyer
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-2 py-2">
-            <label htmlFor="newBuyerName" className="text-sm font-medium">
+            <label
+              htmlFor="newBuyerName"
+              className="text-sm font-medium"
+            >
               Buyer Name
             </label>
 
             <Input
               id="newBuyerName"
               value={newBuyerName}
-              onChange={(event) => setNewBuyerName(event.target.value)}
+              onChange={(event) =>
+                setNewBuyerName(event.target.value)
+              }
               placeholder="Enter buyer name"
             />
+
+            {error && (
+              <p className="text-sm text-red-500">
+                {error}
+              </p>
+            )}
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => setAddDialogOpen(false)}
+              onClick={() =>
+                setAddDialogOpen(false)
+              }
             >
               Cancel
             </Button>
 
             <Button
               type="button"
-              disabled={!newBuyerName.trim() || addingBuyer}
-              onClick={async () => {
-                setError("");
-                setAddingBuyer(true);
-
-                const result = await createBuyer(newBuyerName);
-
-                setAddingBuyer(false);
-
-                if (!result.success) {
-                  setError(result.message ?? "Failed to create buyer.");
-                  return;
-                }
-
-                if (result.buyer) {
-                  setBuyers((current) => [...current, result.buyer]);
-
-                  onChange(result.buyer.id);
-                }
-
-                setAddDialogOpen(false);
-                setNewBuyerName("");
-              }}
+              disabled={
+                !newBuyerName.trim() || adding
+              }
+              onClick={handleCreateBuyer}
             >
-              {addingBuyer ? "Adding..." : "Add Buyer"}
+              {adding ? "Adding..." : "Add Buyer"}
             </Button>
           </DialogFooter>
         </DialogContent>

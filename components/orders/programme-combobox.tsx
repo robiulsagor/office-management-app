@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Check,
-  ChevronsUpDown,
-  Plus,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import { getOrderProgrammes } from "@/actions/order/get-programmes";
 import { createProgramme } from "@/actions/order/create-programme";
@@ -52,48 +48,70 @@ export default function ProgrammeCombobox({
   value,
   onChange,
 }: ProgrammeComboboxProps) {
-  const [programmes, setProgrammes] = useState<Programme[]>([]);
+  const [programmes, setProgrammes] = useState<
+    Programme[]
+  >([]);
+
   const [open, setOpen] = useState(false);
 
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newProgrammeName, setNewProgrammeName] = useState("");
+  const [addDialogOpen, setAddDialogOpen] =
+    useState(false);
+
+  const [newProgrammeName, setNewProgrammeName] =
+    useState("");
 
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
 
-useEffect(() => {
-  if (!buyerId) {
-    return;
-  }
+  // Controls which item Command highlights with keyboard
+  const [commandValue, setCommandValue] = useState("");
 
-  async function loadProgrammes() {
-    setLoading(true);
-
-    const result = await getOrderProgrammes(buyerId);
-
-    if (result.success) {
-      setProgrammes(result.programmes);
+  useEffect(() => {
+    if (!buyerId) {
+      return;
     }
 
-    setLoading(false);
-  }
+    async function loadProgrammes() {
+      setLoading(true);
 
-  loadProgrammes();
-}, [buyerId]);
+      const result =
+        await getOrderProgrammes(buyerId);
+
+      if (result.success) {
+        setProgrammes(result.programmes);
+      }
+
+      setLoading(false);
+    }
+
+    loadProgrammes();
+  }, [buyerId]);
 
   const selectedProgramme = programmes.find(
     (programme) => programme.id === value
   );
 
   function handleSelect(programme: Programme) {
+    setCommandValue(programme.name);
+
     onChange(programme.id);
+
     setOpen(false);
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+
+    if (nextOpen && selectedProgramme) {
+      setCommandValue(selectedProgramme.name);
+    }
   }
 
   function handleOpenAddProgramme() {
     setNewProgrammeName("");
     setError("");
+
     setOpen(false);
     setAddDialogOpen(true);
   }
@@ -111,8 +129,10 @@ useEffect(() => {
 
     if (!result.success) {
       setError(
-        result.message ?? "Failed to create programme."
+        result.message ??
+          "Failed to create programme."
       );
+
       return;
     }
 
@@ -121,6 +141,8 @@ useEffect(() => {
         ...current,
         result.programme!,
       ]);
+
+      setCommandValue(result.programme.name);
 
       onChange(result.programme.id);
     }
@@ -131,7 +153,10 @@ useEffect(() => {
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={handleOpenChange}
+      >
         <PopoverTrigger
           type="button"
           disabled={!buyerId}
@@ -151,7 +176,10 @@ useEffect(() => {
           align="start"
           className="w-(--radix-popover-trigger-width) p-0"
         >
-          <Command>
+          <Command
+            value={commandValue}
+            onValueChange={setCommandValue}
+          >
             <CommandInput placeholder="Search programme..." />
 
             <CommandList>
@@ -188,7 +216,9 @@ useEffect(() => {
 
                     <CommandItem
                       value="__add_new_programme__"
-                      onSelect={handleOpenAddProgramme}
+                      onSelect={
+                        handleOpenAddProgramme
+                      }
                     >
                       <Plus className="mr-2 h-4 w-4" />
 
@@ -225,7 +255,9 @@ useEffect(() => {
               id="newProgrammeName"
               value={newProgrammeName}
               onChange={(event) =>
-                setNewProgrammeName(event.target.value)
+                setNewProgrammeName(
+                  event.target.value
+                )
               }
               placeholder="Enter programme name"
             />
@@ -241,7 +273,9 @@ useEffect(() => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setAddDialogOpen(false)}
+              onClick={() =>
+                setAddDialogOpen(false)
+              }
             >
               Cancel
             </Button>
@@ -253,7 +287,9 @@ useEffect(() => {
               }
               onClick={handleCreateProgramme}
             >
-              {adding ? "Adding..." : "Add Programme"}
+              {adding
+                ? "Adding..."
+                : "Add Programme"}
             </Button>
           </DialogFooter>
         </DialogContent>
