@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { getFactoryShortName } from "@/lib/get-factory-short-name";
 
 type Order = {
   id: string;
@@ -464,8 +465,7 @@ export default function OrdersTable({
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3">
-                                        {order.factory ??
-                                          "—"}
+                                        {getFactoryShortName(order.factory)}
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3 text-right">

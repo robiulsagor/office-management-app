@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 import ColorCombobox from "./color-combobox";
+import FactoryCombobox from "./factory-combobox";
 
 export default function OrderForm() {
   const form = useForm<OrderFormValues>({
@@ -61,6 +62,11 @@ export default function OrderForm() {
   const color = useWatch({
     control: form.control,
     name: "color",
+  });
+
+  const factory = useWatch({
+    control: form.control,
+    name: "factory",
   });
 
   async function onSubmit(values: OrderFormValues) {
@@ -216,18 +222,27 @@ export default function OrderForm() {
           </div>
 
           {/* Factory */}
+          {/* Factory */}
           <div>
             <label htmlFor="factory" className="mb-2 block text-sm font-medium">
               Factory
             </label>
 
-            <input
-              id="factory"
-              type="text"
-              {...form.register("factory")}
-              className="h-10 w-full rounded-md border px-3 text-sm"
-              placeholder="Factory name"
+            <FactoryCombobox
+              value={factory ?? ""}
+              onChange={(value) =>
+                form.setValue("factory", value, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
             />
+
+            {form.formState.errors.factory && (
+              <p className="mt-1 text-xs text-red-500">
+                {form.formState.errors.factory.message}
+              </p>
+            )}
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import Link from "next/link";
+import { getFactoryShortName } from "@/lib/get-factory-short-name";
 
 type Order = {
   id: string;
@@ -71,27 +72,17 @@ function formatDate(date: Date | null) {
   return new Date(date).toLocaleDateString("en-GB");
 }
 
-export default function OrdersAlterTable({
-  orders,
-}: OrdersAlterTableProps) {
+export default function OrdersAlterTable({ orders }: OrdersAlterTableProps) {
   const groupedOrders = useMemo(() => {
-    const buyerMap = new Map<
-      string,
-      Map<string, Order[]>
-    >();
+    const buyerMap = new Map<string, Map<string, Order[]>>();
 
     for (const order of orders) {
       const purchaseOrder =
-        order.purchaseOrder ??
-        order.style.purchaseOrders[0]?.purchaseOrder;
+        order.purchaseOrder ?? order.style.purchaseOrders[0]?.purchaseOrder;
 
-      const buyer =
-        purchaseOrder?.programme.buyer.name ??
-        "No Buyer";
+      const buyer = purchaseOrder?.programme.buyer.name ?? "No Buyer";
 
-      const programme =
-        purchaseOrder?.programme.name ??
-        "No Programme";
+      const programme = purchaseOrder?.programme.name ?? "No Programme";
 
       if (!buyerMap.has(buyer)) {
         buyerMap.set(buyer, new Map());
@@ -106,17 +97,15 @@ export default function OrdersAlterTable({
       programmeMap.get(programme)!.push(order);
     }
 
-    return Array.from(buyerMap.entries()).map(
-      ([buyer, programmeMap]) => ({
-        buyer,
-        programmes: Array.from(
-          programmeMap.entries(),
-        ).map(([programme, orders]) => ({
+    return Array.from(buyerMap.entries()).map(([buyer, programmeMap]) => ({
+      buyer,
+      programmes: Array.from(programmeMap.entries()).map(
+        ([programme, orders]) => ({
           programme,
           orders,
-        })),
-      }),
-    );
+        }),
+      ),
+    }));
   }, [orders]);
 
   const buyerTotals = useMemo(() => {
@@ -126,8 +115,7 @@ export default function OrdersAlterTable({
           sum +
           programme.orders.reduce(
             (programmeSum, order) =>
-              programmeSum +
-              (order.totalActualValue ?? 0),
+              programmeSum + (order.totalActualValue ?? 0),
             0,
           ),
         0,
@@ -138,8 +126,7 @@ export default function OrdersAlterTable({
           sum +
           programme.orders.reduce(
             (programmeSum, order) =>
-              programmeSum +
-              (order.totalFactoryValue ?? 0),
+              programmeSum + (order.totalFactoryValue ?? 0),
             0,
           ),
         0,
@@ -164,8 +151,7 @@ export default function OrdersAlterTable({
     },
   );
 
-  const totalCommission =
-    grandTotal.actual - grandTotal.factory;
+  const totalCommission = grandTotal.actual - grandTotal.factory;
 
   return (
     <div className="space-y-8">
@@ -183,9 +169,7 @@ export default function OrdersAlterTable({
                   Programme
                 </th>
 
-                <th className="border px-3 py-3 text-left font-semibold">
-                  PO
-                </th>
+                <th className="border px-3 py-3 text-left font-semibold">PO</th>
 
                 <th className="border px-3 py-3 text-left font-semibold">
                   Style
@@ -239,245 +223,192 @@ export default function OrdersAlterTable({
 
             <tbody>
               {groupedOrders.map((buyerGroup) => {
-                const buyerOrders =
-                  buyerGroup.programmes.flatMap(
-                    (programme) => programme.orders,
+                const buyerOrders = buyerGroup.programmes.flatMap(
+                  (programme) => programme.orders,
+                );
+
+                return buyerGroup.programmes.map((programmeGroup) => {
+                  const programmeOrders = programmeGroup.orders;
+
+                  const programmeTotalActual = programmeOrders.reduce(
+                    (sum, order) => sum + (order.totalActualValue ?? 0),
+                    0,
                   );
 
-                return buyerGroup.programmes.map(
-                  (programmeGroup) => {
-                    const programmeOrders =
-                      programmeGroup.orders;
+                  const programmeTotalFactory = programmeOrders.reduce(
+                    (sum, order) => sum + (order.totalFactoryValue ?? 0),
+                    0,
+                  );
 
-                    const programmeTotalActual =
-                      programmeOrders.reduce(
-                        (sum, order) =>
-                          sum +
-                          (order.totalActualValue ?? 0),
-                        0,
-                      );
+                  /*
+                   * One Order has one optional purchaseOrder.
+                   *
+                   * If purchaseOrder is null, use the
+                   * Style's associated PO list.
+                   */
+                  const purchaseOrders = programmeOrders.reduce<
+                    Record<string, Order[]>
+                  >((acc, order) => {
+                    const poNumber =
+                      order.purchaseOrder?.poNumber ??
+                      (order.style.purchaseOrders
+                        .map((item) => item.purchaseOrder.poNumber)
+                        .join(", ") ||
+                        "No PO");
 
-                    const programmeTotalFactory =
-                      programmeOrders.reduce(
-                        (sum, order) =>
-                          sum +
-                          (order.totalFactoryValue ?? 0),
-                        0,
-                      );
+                    if (!acc[poNumber]) {
+                      acc[poNumber] = [];
+                    }
 
-                    /*
-                     * One Order has one optional purchaseOrder.
-                     *
-                     * If purchaseOrder is null, use the
-                     * Style's associated PO list.
-                     */
-                    const purchaseOrders =
-                      programmeOrders.reduce<
-                        Record<string, Order[]>
-                      >((acc, order) => {
-                        const poNumber =
-                          order.purchaseOrder?.poNumber ??
-                          (order.style.purchaseOrders
-                            .map(
-                              (item) =>
-                                item.purchaseOrder.poNumber,
-                            )
-                            .join(", ") || "No PO");
+                    acc[poNumber].push(order);
 
-                        if (!acc[poNumber]) {
-                          acc[poNumber] = [];
-                        }
+                    return acc;
+                  }, {});
 
-                        acc[poNumber].push(order);
+                  const programmeIndex = buyerGroup.programmes.findIndex(
+                    (item) => item.programme === programmeGroup.programme,
+                  );
 
-                        return acc;
-                      }, {});
+                  const isFirstProgramme = programmeIndex === 0;
 
-                    const programmeIndex =
-                      buyerGroup.programmes.findIndex(
-                        (item) =>
-                          item.programme ===
-                          programmeGroup.programme,
-                      );
+                  return (
+                    <React.Fragment
+                      key={`${buyerGroup.buyer}-${programmeGroup.programme}`}
+                    >
+                      {Object.entries(purchaseOrders).map(
+                        ([poNumber, poOrders], poIndex) =>
+                          poOrders.map((order, orderIndex) => {
+                            const isFirstBuyerRow =
+                              isFirstProgramme &&
+                              poIndex === 0 &&
+                              orderIndex === 0;
 
-                    const isFirstProgramme =
-                      programmeIndex === 0;
+                            const isFirstProgrammeRow =
+                              poIndex === 0 && orderIndex === 0;
 
-                    return (
-                      <React.Fragment
-                        key={`${buyerGroup.buyer}-${programmeGroup.programme}`}
-                      >
-                        {Object.entries(
-                          purchaseOrders,
-                        ).map(
-                          (
-                            [poNumber, poOrders],
-                            poIndex,
-                          ) =>
-                            poOrders.map(
-                              (order, orderIndex) => {
-                                const isFirstBuyerRow =
-                                  isFirstProgramme &&
-                                  poIndex === 0 &&
-                                  orderIndex === 0;
+                            const isFirstPORow = orderIndex === 0;
 
-                                const isFirstProgrammeRow =
-                                  poIndex === 0 &&
-                                  orderIndex === 0;
-
-                                const isFirstPORow =
-                                  orderIndex === 0;
-
-                                return (
-                                  <tr
-                                    key={`${order.id}-${poNumber}`}
-                                    className="border-b hover:bg-muted/30"
+                            return (
+                              <tr
+                                key={`${order.id}-${poNumber}`}
+                                className="border-b hover:bg-muted/30"
+                              >
+                                {/* Buyer */}
+                                {isFirstBuyerRow && (
+                                  <td
+                                    rowSpan={buyerOrders.length}
+                                    className="border-r px-2 py-2 align-middle font-medium"
                                   >
-                                    {/* Buyer */}
-                                    {isFirstBuyerRow && (
-                                      <td
-                                        rowSpan={
-                                          buyerOrders.length
-                                        }
-                                        className="border-r px-2 py-2 align-middle font-medium"
-                                      >
-                                        {
-                                          buyerGroup.buyer
-                                        }
-                                      </td>
-                                    )}
+                                    {buyerGroup.buyer}
+                                  </td>
+                                )}
 
-                                    {/* Programme */}
-                                    {isFirstProgrammeRow && (
-                                      <td
-                                        rowSpan={
-                                          programmeOrders.length
-                                        }
-                                        className="border-r px-2 py-2 align-middle"
-                                      >
-                                        {
-                                          programmeGroup.programme
-                                        }
-                                      </td>
-                                    )}
+                                {/* Programme */}
+                                {isFirstProgrammeRow && (
+                                  <td
+                                    rowSpan={programmeOrders.length}
+                                    className="border-r px-2 py-2 align-middle"
+                                  >
+                                    {programmeGroup.programme}
+                                  </td>
+                                )}
 
-                                    {/* PO */}
-                                    {isFirstPORow && (
-                                      <td
-                                        rowSpan={
-                                          poOrders.length
-                                        }
-                                        className="border-r px-2 py-2 align-middle"
-                                      >
-                                        {poNumber}
-                                      </td>
-                                    )}
+                                {/* PO */}
+                                {isFirstPORow && (
+                                  <td
+                                    rowSpan={poOrders.length}
+                                    className="border-r px-2 py-2 align-middle"
+                                  >
+                                    {poNumber}
+                                  </td>
+                                )}
 
-                                    {/* Style */}
-                                    <td className="px-2 py-2">
-                                      {
-                                        order.style
-                                          .styleNumber
-                                      }
-                                    </td>
+                                {/* Style */}
+                                <td className="px-2 py-2">
+                                  {order.style.styleNumber}
+                                </td>
 
-                                    {/* Color */}
-                                    <td className="px-2 py-2">
-                                      {order.style.color}
-                                    </td>
+                                {/* Color */}
+                                <td className="px-2 py-2">
+                                  {order.style.color}
+                                </td>
 
-                                    {/* Factory */}
-                                    <td className="px-2 py-2">
-                                      {order.factory ?? "-"}
-                                    </td>
+                                {/* Factory */}
+                                <td className="px-2 py-2">
+                                  {getFactoryShortName(order.factory)}
+                                </td>
 
-                                    {/* Qty Set */}
-                                    <td className="px-2 py-2 text-right">
-                                      {order.qtySet ?? "-"}
-                                    </td>
+                                {/* Qty Set */}
+                                <td className="px-2 py-2 text-right">
+                                  {order.qtySet ?? "-"}
+                                </td>
 
-                                    {/* Qty Piece */}
-                                    <td className="px-2 py-2 text-right">
-                                      {order.qtyPiece ?? "-"}
-                                    </td>
+                                {/* Qty Piece */}
+                                <td className="px-2 py-2 text-right">
+                                  {order.qtyPiece ?? "-"}
+                                </td>
 
-                                    {/* Actual Price */}
-                                    <td className="px-2 py-2 text-right">
-                                      {order.actualPrice ?? "-"}
-                                    </td>
+                                {/* Actual Price */}
+                                <td className="px-2 py-2 text-right">
+                                  {order.actualPrice ?? "-"}
+                                </td>
 
-                                    {/* Factory Price */}
-                                    <td className="px-2 py-2 text-right">
-                                      {order.factoryPrice ?? "-"}
-                                    </td>
+                                {/* Factory Price */}
+                                <td className="px-2 py-2 text-right">
+                                  {order.factoryPrice ?? "-"}
+                                </td>
 
-                                    {/* Actual Value */}
-                                    <td className="px-2 py-2 text-right">
-                                      {order.totalActualValue ??
-                                        "-"}
-                                    </td>
+                                {/* Actual Value */}
+                                <td className="px-2 py-2 text-right">
+                                  {order.totalActualValue ?? "-"}
+                                </td>
 
-                                    {/* Factory Value */}
-                                    <td className="px-2 py-2 text-right">
-                                      {order.totalFactoryValue ??
-                                        "-"}
-                                    </td>
+                                {/* Factory Value */}
+                                <td className="px-2 py-2 text-right">
+                                  {order.totalFactoryValue ?? "-"}
+                                </td>
 
-                                    {/* Ship Date */}
-                                    <td className="px-2 py-2">
-                                      {formatDate(
-                                        order.shipDate,
-                                      ) || "-"}
-                                    </td>
+                                {/* Ship Date */}
+                                <td className="px-2 py-2">
+                                  {formatDate(order.shipDate) || "-"}
+                                </td>
 
-                                    {/* Status */}
-                                    <td className="px-2 py-2">
-                                      {order.status}
-                                    </td>
+                                {/* Status */}
+                                <td className="px-2 py-2">{order.status}</td>
 
-                                    {/* Action */}
-                                    <td className="px-2 py-2 text-center">
-                                      <Link
-                                        href={`/orders/${order.id}`}
-                                        className="text-primary hover:underline"
-                                      >
-                                        View
-                                      </Link>
-                                    </td>
-                                  </tr>
-                                );
-                              },
-                            ),
-                        )}
+                                {/* Action */}
+                                <td className="px-2 py-2 text-center">
+                                  <Link
+                                    href={`/orders/${order.id}`}
+                                    className="text-primary hover:underline"
+                                  >
+                                    View
+                                  </Link>
+                                </td>
+                              </tr>
+                            );
+                          }),
+                      )}
 
-                        {/* Programme Total */}
-                        <tr className="border-b-2 bg-muted/60 font-semibold">
-                          <td
-                            colSpan={9}
-                            className="px-2 py-2 text-right"
-                          >
-                            {programmeGroup.programme}{" "}
-                            Total
-                          </td>
+                      {/* Programme Total */}
+                      <tr className="border-b-2 bg-muted/60 font-semibold">
+                        <td colSpan={9} className="px-2 py-2 text-right">
+                          {programmeGroup.programme} Total
+                        </td>
 
-                          <td className="px-2 py-2 text-right">
-                            {formatNumber(
-                              programmeTotalActual,
-                            )}
-                          </td>
+                        <td className="px-2 py-2 text-right">
+                          {formatNumber(programmeTotalActual)}
+                        </td>
 
-                          <td className="px-2 py-2 text-right">
-                            {formatNumber(
-                              programmeTotalFactory,
-                            )}
-                          </td>
+                        <td className="px-2 py-2 text-right">
+                          {formatNumber(programmeTotalFactory)}
+                        </td>
 
-                          <td colSpan={4}></td>
-                        </tr>
-                      </React.Fragment>
-                    );
-                  },
-                );
+                        <td colSpan={4}></td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                });
               })}
             </tbody>
           </table>
@@ -494,9 +425,7 @@ export default function OrdersAlterTable({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="px-5 py-3 text-left font-medium">
-                  Buyer
-                </th>
+                <th className="px-5 py-3 text-left font-medium">Buyer</th>
 
                 <th className="px-5 py-3 text-right font-medium">
                   Total Actual Value
@@ -510,13 +439,8 @@ export default function OrdersAlterTable({
 
             <tbody>
               {buyerTotals.map((buyer) => (
-                <tr
-                  key={buyer.buyer}
-                  className="border-b"
-                >
-                  <td className="px-5 py-3 font-medium">
-                    {buyer.buyer}
-                  </td>
+                <tr key={buyer.buyer} className="border-b">
+                  <td className="px-5 py-3 font-medium">{buyer.buyer}</td>
 
                   <td className="px-5 py-3 text-right">
                     ৳ {formatNumber(buyer.actual)}
@@ -543,14 +467,9 @@ export default function OrdersAlterTable({
               </tr>
 
               <tr className="bg-muted/20 font-bold">
-                <td className="px-5 py-4">
-                  Total Commission
-                </td>
+                <td className="px-5 py-4">Total Commission</td>
 
-                <td
-                  colSpan={2}
-                  className="px-5 py-4 text-right"
-                >
+                <td colSpan={2} className="px-5 py-4 text-right">
                   ৳ {formatNumber(totalCommission)}
                 </td>
               </tr>
