@@ -1,15 +1,15 @@
 import Link from "next/link";
 
 import { getOrders } from "@/actions/order/get-orders";
-import OrdersTable from "@/components/orders/orders-table";
+import OrdersView from "@/components/orders/orders-view";
 
 export default async function OrdersPage() {
   const result = await getOrders();
 
   if (!result.success) {
     return (
-      <div className="min-h-screen bg-muted/40 ">
-        <div className="">
+      <div className="min-h-screen bg-muted/40">
+        <div>
           <h1 className="mb-4 text-2xl font-semibold">
             Orders
           </h1>
@@ -23,8 +23,9 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/40 ">
-      <div className="">
+    <div className="min-h-screen bg-muted/40">
+      hello
+      <div>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">
@@ -44,7 +45,7 @@ export default async function OrdersPage() {
           </Link>
         </div>
 
-        <OrdersTable orders={result.orders} />
+        <OrdersView orders={result.orders} />
       </div>
     </div>
   );

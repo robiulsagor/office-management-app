@@ -7,12 +7,36 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 type Order = {
   id: string;
 
-  buyer: string | null;
-  programme: string | null;
-  poNumber: string | null;
+  style: {
+    styleNumber: string;
+    color: string;
 
-  styleNumber: string;
-  color: string;
+    purchaseOrders: {
+      purchaseOrder: {
+        poNumber: string;
+
+        programme: {
+          name: string;
+
+          buyer: {
+            name: string;
+          };
+        };
+      };
+    }[];
+  };
+
+  purchaseOrder: {
+    poNumber: string;
+
+    programme: {
+      name: string;
+
+      buyer: {
+        name: string;
+      };
+    };
+  } | null;
 
   factory: string | null;
 
@@ -80,23 +104,31 @@ export default function OrdersTable({
   const buyerGroups = useMemo<BuyerGroup[]>(() => {
     const buyerMap = new Map<string, Map<string, Order[]>>();
 
-    for (const order of orders) {
-      const buyerName = order.buyer ?? "No Buyer";
-      const programmeName =
-        order.programme ?? "No Programme";
+   for (const order of orders) {
+  const purchaseOrder =
+    order.purchaseOrder ??
+    order.style.purchaseOrders[0]?.purchaseOrder;
 
-      if (!buyerMap.has(buyerName)) {
-        buyerMap.set(buyerName, new Map());
-      }
+  const buyerName =
+    purchaseOrder?.programme.buyer.name ??
+    "No Buyer";
 
-      const programmeMap = buyerMap.get(buyerName)!;
+  const programmeName =
+    purchaseOrder?.programme.name ??
+    "No Programme";
 
-      if (!programmeMap.has(programmeName)) {
-        programmeMap.set(programmeName, []);
-      }
+  if (!buyerMap.has(buyerName)) {
+    buyerMap.set(buyerName, new Map());
+  }
 
-      programmeMap.get(programmeName)!.push(order);
-    }
+  const programmeMap = buyerMap.get(buyerName)!;
+
+  if (!programmeMap.has(programmeName)) {
+    programmeMap.set(programmeName, []);
+  }
+
+  programmeMap.get(programmeName)!.push(order);
+}
 
     return Array.from(buyerMap.entries()).map(
       ([buyerName, programmeMap]) => ({
@@ -248,7 +280,7 @@ export default function OrdersTable({
                   </span>
                 </div>
 
-                <div className="text-right text-sm">
+                {/* <div className="text-right text-sm">
                   <div>
                     Actual:{" "}
                     <span className="font-semibold">
@@ -262,7 +294,8 @@ export default function OrdersTable({
                       ৳ {formatMoney(buyerTotal.factory)}
                     </span>
                   </div>
-                </div>
+                </div> */}
+                {/* hidden, too much texts */}
               </button>
 
               {/* Buyer Content */}
@@ -347,8 +380,8 @@ export default function OrdersTable({
                           <div className="overflow-x-auto">
                             <table className="w-full text-xs">
                               <thead className="border-t border-b bg-muted/10">
-                                <tr className="text-left">
-                                  <th className="whitespace-nowrap px-4 py-3 text-slate-700">
+                                <tr className="text-left hover:bg-muted/20">
+                                  <th className=" px-4 py-3 text-slate-700">
                                     PO
                                   </th>
 
@@ -407,21 +440,27 @@ export default function OrdersTable({
                                   (order) => (
                                     <tr
                                       key={order.id}
-                                      className="hover:bg-muted/20"
+                                      className="hover:bg-muted"
                                     >
-                                      <td className="whitespace-nowrap px-4 py-3">
-                                        {order.poNumber ??
+                                      <td className=" px-4 py-3">
+                                        {(order.purchaseOrder?.poNumber ??
+                                          order.style.purchaseOrders
+                                            .map(
+                                              (item) =>
+                                                item.purchaseOrder.poNumber
+                                            )
+                                            .join(", ")) ||
                                           "—"}
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3 font-medium">
-                                        {
-                                          order.styleNumber
-                                        }
+                                        
+                                          {order.style.styleNumber}
+                                        
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3">
-                                        {order.color}
+                                        {order.style.color}
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3">
@@ -440,26 +479,26 @@ export default function OrdersTable({
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3 text-right">
-                                        {formatMoney(
+                                        ${" "}{formatMoney(
                                           order.actualPrice
                                         )}
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3 text-right">
-                                        {formatMoney(
+                                       ${" "} {formatMoney(
                                           order.factoryPrice
                                         )}
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3 text-right">
-                                        ৳{" "}
+                                        ${" "}
                                         {formatMoney(
                                           order.totalActualValue
                                         )}
                                       </td>
 
                                       <td className="whitespace-nowrap px-4 py-3 text-right">
-                                        ৳{" "}
+                                        ${" "}
                                         {formatMoney(
                                           order.totalFactoryValue
                                         )}
@@ -508,14 +547,14 @@ export default function OrdersTable({
                                   </td>
 
                                   <td className="whitespace-nowrap px-4 py-3 text-right">
-                                    ৳{" "}
+                                    ${" "}
                                     {formatMoney(
                                       programmeTotal.actual
                                     )}
                                   </td>
 
                                   <td className="whitespace-nowrap px-4 py-3 text-right">
-                                    ৳{" "}
+                                    ${" "}
                                     {formatMoney(
                                       programmeTotal.factory
                                     )}
@@ -542,14 +581,14 @@ export default function OrdersTable({
                     <span>
                       Actual:{" "}
                       <strong>
-                        ৳ {formatMoney(buyerTotal.actual)}
+                        $ {formatMoney(buyerTotal.actual)}
                       </strong>
                     </span>
 
                     <span>
                       Factory:{" "}
                       <strong>
-                        ৳ {formatMoney(buyerTotal.factory)}
+                        $ {formatMoney(buyerTotal.factory)}
                       </strong>
                     </span>
                   </div>
@@ -570,14 +609,14 @@ export default function OrdersTable({
           <span className="text-sm">
             Actual:{" "}
             <strong className="text-base">
-              ৳ {formatMoney(grandTotal.actual)}
+              $ {formatMoney(grandTotal.actual)}
             </strong>
           </span>
 
           <span className="text-sm">
             Factory:{" "}
             <strong className="text-base">
-              ৳ {formatMoney(grandTotal.factory)}
+              $ {formatMoney(grandTotal.factory)}
             </strong>
           </span>
         </div>
