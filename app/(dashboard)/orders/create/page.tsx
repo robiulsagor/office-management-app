@@ -5,6 +5,7 @@ import Link from "next/link";
 export default function CreateOrderPage() {
   return (
     <div className="container mx-auto py-6">
+      <title>Create Order - Adventure Clothing & Sourcing</title>
         <div className="mb-6 flex items-center justify-between">
       <h1 className="mb-6 text-2xl font-semibold">Create Order</h1>
 

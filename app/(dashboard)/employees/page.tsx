@@ -18,11 +18,6 @@ import {
 } from "@/actions/employee/employee-actions";
 import toast from "react-hot-toast";
 
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Employees - Office Management App",
-  };
 
 const Employees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -142,6 +137,7 @@ const Employees = () => {
 
   return (
     <div className="mx-auto w-full space-y-6 pb-10">
+      <title>Employees - Adventure Clothing & Sourcing</title>
       {/* ============================================ */}
       {/* Page Header */}
       {/* ============================================ */}
