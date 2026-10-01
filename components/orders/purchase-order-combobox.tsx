@@ -28,8 +28,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getOrderPurchaseOrders } from "./get-purchase-orders";
-import { createPurchaseOrder } from "./create-purchase-order";
+import { getOrderPurchaseOrders } from "@/actions/order/get-purchase-orders";
+import { createPurchaseOrder } from "@/actions/order/create-purchase-order";
 
 type PurchaseOrder = {
   id: string;

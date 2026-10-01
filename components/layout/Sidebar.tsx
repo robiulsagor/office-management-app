@@ -5,7 +5,6 @@ import {
   Banknote,
   Bus,
   DollarSign,
-  DoorClosed,
   Grid2X2,
   ListOrdered,
   LogOut,
@@ -14,8 +13,6 @@ import {
   UserCheck,
   Users2,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 
 import {
@@ -97,7 +94,6 @@ const menuItems: MenuTypes[] = [
 ];
 
 const Sidebar = () => {
-  const path = usePathname();
   // const [showSidebar, setShowSidebar] = useState(true);
   const isMobileNavOpen = useMobileNav((state) => state.isOpen);
   const closeMobileNav = useMobileNav((state) => state.close);

@@ -72,6 +72,18 @@ function formatDate(date: Date | null) {
   return new Date(date).toLocaleDateString("en-GB");
 }
 
+
+function formatMoney(value: number | null) {
+  if (value == null) {
+    return "—";
+  }
+
+  return value.toLocaleString("en-BD", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 export default function OrdersAlterTable({ orders }: OrdersAlterTableProps) {
   const groupedOrders = useMemo(() => {
     const buyerMap = new Map<string, Map<string, Order[]>>();
@@ -329,12 +341,12 @@ export default function OrdersAlterTable({ orders }: OrdersAlterTableProps) {
                                 </td>
 
                                 {/* Color */}
-                                <td className="px-2 py-2">
+                                <td className="px-2 py-2 text-center">
                                   {order.style.color}
                                 </td>
 
                                 {/* Factory */}
-                                <td className="px-2 py-2">
+                                <td className="px-2 py-2 text-center">
                                   {getFactoryShortName(order.factory)}
                                 </td>
 
@@ -350,22 +362,22 @@ export default function OrdersAlterTable({ orders }: OrdersAlterTableProps) {
 
                                 {/* Actual Price */}
                                 <td className="px-2 py-2 text-right">
-                                  {order.actualPrice ?? "-"}
+                                  ${" "}{formatMoney(order.actualPrice)}
                                 </td>
 
                                 {/* Factory Price */}
                                 <td className="px-2 py-2 text-right">
-                                  {order.factoryPrice ?? "-"}
+                                 ${" "} {formatMoney(order.factoryPrice)}
                                 </td>
 
                                 {/* Actual Value */}
                                 <td className="px-2 py-2 text-right">
-                                  {order.totalActualValue ?? "-"}
+                                 ${" "} {formatMoney(order.totalActualValue)}
                                 </td>
 
                                 {/* Factory Value */}
                                 <td className="px-2 py-2 text-right">
-                                  {order.totalFactoryValue ?? "-"}
+                                  ${" "} {formatMoney(order.totalFactoryValue)}
                                 </td>
 
                                 {/* Ship Date */}
