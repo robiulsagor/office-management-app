@@ -4,7 +4,6 @@ import { signOut } from "next-auth/react";
 import {
   Banknote,
   Bus,
-  DollarSign,
   Grid2X2,
   ListOrdered,
   LogOut,
@@ -77,13 +76,13 @@ const menuItems: MenuTypes[] = [
     icon: Bus,
     roles: ["super_admin", "admin", "accounts", "employee"],
   },
-  {
-    id: 8,
-    path: "/salary",
-    label: "Salary",
-    icon: DollarSign,
-    roles: ["super_admin", "admin", "accounts"],
-  },
+  // {
+  //   id: 8,
+  //   path: "/salary",
+  //   label: "Salary",
+  //   icon: DollarSign,
+  //   roles: ["super_admin", "admin", "accounts"],
+  // },
   {
     id: 9,
     path: "/user-management",

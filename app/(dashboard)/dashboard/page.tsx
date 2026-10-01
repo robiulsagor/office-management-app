@@ -4,6 +4,11 @@ import DashboardSummary from "@/components/dashboard/dashboard-summary";
 import QuickActions from "@/components/dashboard/quick-actions";
 import RecentBazar from "@/components/dashboard/recent-bazar";
 import RecentExpenses from "@/components/dashboard/recent-expenses";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard - Office Management App",
+  };
 
 const Dashboard = async () => {
   const data = await getDashboardData();

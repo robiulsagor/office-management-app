@@ -18,82 +18,11 @@ import {
 } from "@/actions/employee/employee-actions";
 import toast from "react-hot-toast";
 
-// --------------------------------------------------
-// Mock Data
-// --------------------------------------------------
+import { Metadata } from "next";
 
-// const initialEmployees: Employee[] = [
-//   {
-//     id: "1",
-//     employeeCode: "ACS-001",
-//     name: "Md. Rahim",
-//     designation: "Managing Director",
-//     department: "Management",
-//     phone: "01711-111111",
-//     email: "rahim@acs.com",
-//     joiningDate: "2022-01-01",
-//     salary: "80000",
-//     employmentStatus: "ACTIVE",
-//     address: "Uttara, Dhaka",
-//     emergencyContact: "01700-111111",
-//   },
-//   {
-//     id: "2",
-//     employeeCode: "ACS-002",
-//     name: "Md. Karim",
-//     designation: "Merchandiser",
-//     department: "Merchandising",
-//     phone: "01711-222222",
-//     email: "karim@acs.com",
-//     joiningDate: "2023-03-15",
-//     salary: "30000",
-//     employmentStatus: "Active",
-//     address: "Mirpur, Dhaka",
-//     emergencyContact: "01700-222222",
-//   },
-//   {
-//     id: "3",
-//     employeeCode: "ACS-003",
-//     name: "Sadia Akter",
-//     designation: "Accountant",
-//     department: "Accounts",
-//     phone: "01811-333333",
-//     email: "sadia@acs.com",
-//     joiningDate: "2023-06-10",
-//     salary: "28000",
-//     employmentStatus: "Active",
-//     address: "Mohammadpur, Dhaka",
-//     emergencyContact: "01700-333333",
-//   },
-//   {
-//     id: "4",
-//     employeeCode: "ACS-004",
-//     name: "Hasan Mahmud",
-//     designation: "Admin Executive",
-//     department: "Admin",
-//     phone: "01911-444444",
-//     email: "hasan@acs.com",
-//     joiningDate: "2024-02-05",
-//     salary: "25000",
-//     employmentStatus: "Active",
-//     address: "Uttara, Dhaka",
-//     emergencyContact: "01700-444444",
-//   },
-//   {
-//     id: "5",
-//     employeeCode: "ACS-005",
-//     name: "Nusrat Jahan",
-//     designation: "Junior Merchandiser",
-//     department: "Merchandising",
-//     phone: "01611-555555",
-//     email: "nusrat@acs.com",
-//     joiningDate: "2024-08-20",
-//     salary: "22000",
-//     employmentStatus: "Inactive",
-//     address: "Badda, Dhaka",
-//     emergencyContact: "01700-555555",
-//   },
-// ];
+export const metadata: Metadata = {
+  title: "Employees - Office Management App",
+  };
 
 const Employees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);

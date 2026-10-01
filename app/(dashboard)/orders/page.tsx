@@ -3,6 +3,12 @@ import Link from "next/link";
 import { getOrders } from "@/actions/order/get-orders";
 import OrdersView from "@/components/orders/orders-view";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Orders - Office Management App",
+  };
+
 export default async function OrdersPage() {
   const result = await getOrders();
 

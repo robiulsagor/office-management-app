@@ -1,6 +1,12 @@
 import SalaryPage from "@/components/salary/salary-page";
 import { redirect } from "next/navigation";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Salary - Office Management App",
+  };
+
 type PageProps = {
   searchParams: Promise<{
     month?: string;
