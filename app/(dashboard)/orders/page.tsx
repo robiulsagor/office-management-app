@@ -24,7 +24,6 @@ export default async function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      hello
       <div>
         <div className="mb-6 flex items-center justify-between">
           <div>
