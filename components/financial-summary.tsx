@@ -1,56 +1,73 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getFinancialSummary } from "@/actions/deposit/financial-summary";
 
-type Summary = {
+import { getFinancialSummary } from "@/actions/deposit/financial-summary";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+type FinancialSummaryData = {
   totalDeposits: number;
   bazarSpending: number;
   otherExpenses: number;
   remainingBalance: number;
 };
 
-function money(amount: number) {
+type FinancialSummaryProps = {
+  month?: string;
+};
+
+function getCurrentMonth() {
+  // Use Bangladesh local time to determine the current month.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+
+  return `${year}-${month}`;
+}
+
+function formatMoney(amount: number) {
   return new Intl.NumberFormat("en-BD", {
-    minimumFractionDigits: 2,
+    style: "currency",
+    currency: "BDT",
     maximumFractionDigits: 2,
   }).format(amount);
 }
 
-export default function FinancialSummary() {
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [error, setError] = useState("");
+export default function FinancialSummary({
+  month,
+}: FinancialSummaryProps) {
+  const selectedMonth = month ?? getCurrentMonth();
+
+  const [summary, setSummary] =
+    useState<FinancialSummaryData | null>(null);
+
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let ignore = false;
 
     async function loadSummary() {
-      try {
-        const result = await getFinancialSummary();
+      setLoading(true);
+      setError(null);
 
-        if (ignore) return;
+      const result = await getFinancialSummary(selectedMonth);
 
-        if (!result.success) {
-          setError(result.message ?? "Failed to load financial summary.");
-          return;
-        }
+      if (ignore) return;
 
-        if (!result.summary) {
-          setError("Financial summary is unavailable.");
-          return;
-        }
-
+      if (!result.success) {
+        setError(result.message);
+        setSummary(null);
+      } else {
         setSummary(result.summary);
-      } catch {
-        if (!ignore) {
-          setError("Failed to load financial summary.");
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
       }
+
+      setLoading(false);
     }
 
     void loadSummary();
@@ -58,73 +75,58 @@ export default function FinancialSummary() {
     return () => {
       ignore = true;
     };
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        Loading financial summary...
-      </div>
-    );
-  }
-
-  if (error || !summary) {
-    return (
-      <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
-        {error || "Financial summary unavailable."}
-      </p>
-    );
-  }
+  }, [selectedMonth]);
 
   const cards = [
     {
       title: "Total Deposits",
-      amount: summary.totalDeposits,
-      // color: "text-blue-700",
+      value: summary?.totalDeposits,
     },
     {
       title: "Bazar Spending",
-      amount: summary.bazarSpending,
-      // color: "text-orange-700",
+      value: summary?.bazarSpending,
     },
     {
       title: "Other Expenses",
-      amount: summary.otherExpenses,
-      // color: "text-purple-700",
+      value: summary?.otherExpenses,
     },
     {
       title: "Remaining Balance",
-      amount: summary.remainingBalance,
-      color: summary.remainingBalance < 0 ? "text-red-700" : "text-green-700",
+      value: summary?.remainingBalance,
     },
   ];
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-slate-900">
+    <div className="space-y-3">
+      <h2 className="text-lg font-semibold text-slate-700">
         Financial Summary
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => (
-          <div
-            key={card.title}
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-          >
-            <p className="text-sm font-medium text-slate-500">{card.title}</p>
+      {loading ? (
+        <p className="text-sm text-muted-foreground">
+          Loading financial summary...
+        </p>
+      ) : error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {cards.map((card) => (
+            <Card key={card.title}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {card.title}
+                </CardTitle>
+              </CardHeader>
 
-            <p
-              className={`mt-2 wrap-break-words text-2xl font-bold ${card.color || "text-slate-800"}`}
-            >
-              ৳{money(card.amount)}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <p className="text-xs text-slate-500">
-        Calculated from records dated 1 October 2026 onward.
-      </p>
-    </section>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {formatMoney(card.value ?? 0)}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

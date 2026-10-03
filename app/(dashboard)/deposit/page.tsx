@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  createDeposit,
-  getMyDeposits,
-} from "@/actions/deposit/create-deposit";
+import { createDeposit, getMyDeposits } from "@/actions/deposit/create-deposit";
 import FinancialSummary from "@/components/financial-summary";
+import { useSearchParams } from "next/navigation";
+import MonthSelector from "@/components/month-selector";
 
 type Deposit = {
   id: string;
@@ -50,6 +49,16 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
+function getCurrentMonth() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+
+  return `${parts.find((p) => p.type === "year")?.value}-${parts.find((p) => p.type === "month")?.value}`;
+}
+
 export default function DepositPage() {
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [date, setDate] = useState(getToday);
@@ -66,45 +75,45 @@ export default function DepositPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  
+  const searchParams = useSearchParams();
+
+  const month = searchParams.get("month") ?? getCurrentMonth();
 
   useEffect(() => {
-  let ignore = false;
+    let ignore = false;
 
-  async function fetchDeposits() {
-    try {
-      const result = await getMyDeposits();
+    async function fetchDeposits() {
+      try {
+        const result = await getMyDeposits();
 
-      if (ignore) return;
+        if (ignore) return;
 
-      if (!result.success) {
-        setError(result.message);
-        return;
-      }
+        if (!result.success) {
+          setError(result.message);
+          return;
+        }
 
-      setDeposits(result.deposits as Deposit[]);
-      setError("");
-    } catch {
-      if (!ignore) {
-        setError("Failed to load deposits.");
-      }
-    } finally {
-      if (!ignore) {
-        setLoading(false);
+        setDeposits(result.deposits as Deposit[]);
+        setError("");
+      } catch {
+        if (!ignore) {
+          setError("Failed to load deposits.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     }
-  }
 
-  void fetchDeposits();
+    void fetchDeposits();
 
-  return () => {
-    ignore = true;
-  };
-}, []);
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setMessage("");
@@ -145,9 +154,9 @@ export default function DepositPage() {
 
       const resultAfterSave = await getMyDeposits();
 
-if (resultAfterSave.success) {
-  setDeposits(resultAfterSave.deposits as Deposit[]);
-}
+      if (resultAfterSave.success) {
+        setDeposits(resultAfterSave.deposits as Deposit[]);
+      }
     } catch {
       setError("Something went wrong while saving the deposit.");
     } finally {
@@ -167,37 +176,35 @@ if (resultAfterSave.success) {
         (deposit.purpose ?? "").toLowerCase().includes(keyword) ||
         deposit.amount.toString().includes(keyword);
 
-      const matchesFromDate =
-        !fromDate || depositDate >= fromDate;
+      const matchesFromDate = !fromDate || depositDate >= fromDate;
 
-      const matchesToDate =
-        !toDate || depositDate <= toDate;
+      const matchesToDate = !toDate || depositDate <= toDate;
 
-      return (
-        matchesSearch &&
-        matchesFromDate &&
-        matchesToDate
-      );
+      return matchesSearch && matchesFromDate && matchesToDate;
     });
   }, [deposits, search, fromDate, toDate]);
 
   const totalAmount = filteredDeposits.reduce(
     (total, deposit) => total + deposit.amount,
-    0
+    0,
   );
 
   return (
     <main className="mx-auto  space-y-6 p-4">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Deposit Management
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Record and manage your deposits.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Deposit Management
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Record and manage your deposits.
+          </p>
+        </div>
+
+        <MonthSelector month={month} basePath="/deposit" />
       </div>
 
-      <FinancialSummary />
+      <FinancialSummary month={month} />
 
       {/* Create deposit form */}
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -329,9 +336,7 @@ if (resultAfterSave.success) {
       {/* Search and filters */}
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4">
-          <h2 className="text-lg font-semibold text-slate-800">
-            My Deposits
-          </h2>
+          <h2 className="text-lg font-semibold text-slate-800">My Deposits</h2>
           <p className="mt-1 text-sm text-slate-500">
             Search and filter your deposit records.
           </p>

@@ -19,6 +19,7 @@ import BazarFormDialog from "./bazar-form-dialog";
 import { getBazarEntries } from "@/actions/bazar/get-bazar-entries";
 import { deleteBazarEntry } from "@/actions/bazar/delete-bazar-entry";
 import toast from "react-hot-toast";
+import FinancialSummary from "../financial-summary";
 
 type BazarPageProps = {
   month: string;
@@ -216,6 +217,8 @@ const BazarPage = ({
   };
 
   const [language, setLanguage] = useState<"en" | "bn">("en");
+
+  
   // ------------------------------------------------
   // Render
   // ------------------------------------------------
@@ -233,7 +236,7 @@ const BazarPage = ({
           </div>
 
           <div>
-            <h1 className="text-lg font-bold tracking-tight md:text-2xl">
+            <h1 className="text-lg font-bold tracking-tight md:text-2xl text-slate-700">
               Bazar
             </h1>
 
@@ -269,10 +272,14 @@ const BazarPage = ({
       {/* Summary */}
       {/* ========================================== */}
 
-      <BazarSummary
+      {/* <BazarSummary
         deposits={totalDeposits}
         expense={totalExpense}
         balance={balance}
+      /> */}
+
+      <FinancialSummary month={month}
+
       />
 
       {/* ========================================== */}

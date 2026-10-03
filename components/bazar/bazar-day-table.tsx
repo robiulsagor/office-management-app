@@ -61,7 +61,7 @@ const BazarDayTable = ({
           <tr className="border-y bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <th className="px-6 py-3">Date</th>
             <th className="px-6 py-3">Type</th>
-            <th className="px-6 py-3 text-right">Deposit</th>
+            {/* <th className="px-6 py-3 text-right">Deposit</th> */}
             <th className="px-6 py-3 text-right">Expense</th>
             <th className="px-6 py-3 text-right">Actions</th>
           </tr>
@@ -95,9 +95,9 @@ const BazarDayTable = ({
                   )}
                 </td>
 
-                <td className="px-6 py-4 text-right text-sm text-emerald-700">
+                {/* <td className="px-6 py-4 text-right text-sm text-emerald-700">
                   {formatCurrency(entry.deposit)}
-                </td>
+                </td> */}
 
                 <td className="px-6 py-4 text-right text-sm text-orange-700">
                   {formatCurrency(expense)}
@@ -152,9 +152,9 @@ const BazarDayTable = ({
 
             <td />
 
-            <td className="px-6 py-4 text-right text-emerald-700">
+            {/* <td className="px-6 py-4 text-right text-emerald-700">
               {formatCurrency(totalDeposit)}
-            </td>
+            </td> */}
 
             <td className="px-6 py-4 text-right text-orange-700">
               {formatCurrency(totalExpense)}
