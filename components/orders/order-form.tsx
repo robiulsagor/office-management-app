@@ -16,30 +16,35 @@ import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 import ColorCombobox from "./color-combobox";
 import FactoryCombobox from "./factory-combobox";
+import { updateOrder } from "@/actions/order/update-order";
 
-export default function OrderForm() {
+type OrderFormProps = {
+  mode?: "create" | "edit";
+  orderId?: string;
+  initialValues?: OrderFormValues;
+};
+
+export default function OrderForm({
+  mode = "create",
+  orderId,
+  initialValues,
+}: OrderFormProps) {
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
 
-    defaultValues: {
+    defaultValues: initialValues ?? {
       buyerId: "",
       programmeId: "",
       purchaseOrderIds: [],
-
       styleNumber: "",
       color: "",
       factory: "",
-
       qtySet: undefined,
       qtyPiece: undefined,
-
       actualPrice: undefined,
       factoryPrice: undefined,
-
       shipDate: "",
-
       status: "PENDING",
-
       remarks: "",
     },
   });
@@ -70,15 +75,33 @@ export default function OrderForm() {
   });
 
   async function onSubmit(values: OrderFormValues) {
-    const result = await createOrder(values);
+    if (mode === "edit" && !orderId) {
+      toast.error("Order ID is missing.");
+      return;
+    }
 
-    console.log(result);
+    const result =
+      mode === "edit"
+        ? await updateOrder(orderId!, values)
+        : await createOrder(values);
 
     if (result.success) {
-      form.reset();
-      toast.success("Order created successfully!");
+      toast.success(
+        mode === "edit"
+          ? "Order updated successfully!"
+          : "Order created successfully!",
+      );
+
+      if (mode === "create") {
+        form.reset();
+      }
     } else {
-      toast.error(result.message ?? "Failed to create order.");
+      toast.error(
+        result.message ??
+          (mode === "edit"
+            ? "Failed to update order."
+            : "Failed to create order."),
+      );
     }
   }
 
@@ -448,8 +471,10 @@ export default function OrderForm() {
             {form.formState.isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
+                {mode === "edit" ? "Updating..." : "Creating..."}
               </>
+            ) : mode === "edit" ? (
+              "Update Order"
             ) : (
               "Create Order"
             )}

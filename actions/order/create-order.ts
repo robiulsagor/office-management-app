@@ -2,8 +2,9 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { calculateOrderTotals, getEditableOrderValues, orderHistoryInclude, serializeOrderForHistory, validateOrderHierarchy } from "./order-history";
 
-type CreateOrderData = {
+export type CreateOrderData = {
   buyerId: string;
   programmeId: string;
   purchaseOrderIds?: string[];
@@ -27,153 +28,107 @@ type CreateOrderData = {
 };
 
 export async function createOrder(data: CreateOrderData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false as const, message: "You must be logged in to create an order." };
+  }
+
+  if (!data.buyerId) return { success: false as const, message: "Buyer is required." };
+  if (!data.programmeId) return { success: false as const, message: "Programme is required." };
+  if (!data.styleNumber?.trim()) return { success: false as const, message: "Style number is required." };
+  if (!data.color?.trim()) return { success: false as const, message: "Color is required." };
+  if (data.shipDate && Number.isNaN(new Date(data.shipDate).getTime())) {
+    return { success: false as const, message: "Ship date is invalid." };
+  }
+
+  const values = getEditableOrderValues(data);
+  const totals = calculateOrderTotals(data);
+
   try {
-    const session = await auth();
+    const result = await prisma.$transaction(async (tx) => {
+      const hierarchy = await validateOrderHierarchy(tx, data);
+      if (!hierarchy.success) throw new Error(hierarchy.message);
+      const purchaseOrderIds = hierarchy.purchaseOrderIds;
 
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        message: "You must be logged in to create an order.",
-      };
-    }
-
-    const createdById = session.user.id;
-
-    // 1. Validate required fields
-    if (!data.buyerId) {
-      return {
-        success: false,
-        message: "Buyer is required.",
-      };
-    }
-
-    if (!data.programmeId) {
-      return {
-        success: false,
-        message: "Programme is required.",
-      };
-    }
-
-    if (!data.styleNumber?.trim()) {
-      return {
-        success: false,
-        message: "Style number is required.",
-      };
-    }
-
-    if (!data.color?.trim()) {
-      return {
-        success: false,
-        message: "Color is required.",
-      };
-    }
-
-    // 2. Verify programme belongs to selected buyer
-    const programme = await prisma.programme.findFirst({
-      where: {
-        id: data.programmeId,
-        buyerId: data.buyerId,
-      },
-    });
-
-    if (!programme) {
-      return {
-        success: false,
-        message: "Invalid programme selected.",
-      };
-    }
-
-    // 3. Verify PO belongs to selected programme
-    const purchaseOrderIds = data.purchaseOrderIds ?? [];
-
-    if (purchaseOrderIds.length > 0) {
-      const purchaseOrders = await prisma.purchaseOrder.findMany({
-        where: {
-          id: {
-            in: purchaseOrderIds,
+      const style = await tx.style.create({
+        data: {
+          styleNumber: values.styleNumber,
+          color: values.color,
+          programmeId: values.programmeId,
+          purchaseOrders: {
+            create: purchaseOrderIds.map((purchaseOrderId) => ({ purchaseOrderId })),
           },
-          programmeId: data.programmeId,
-        },
-        select: {
-          id: true,
         },
       });
 
-      if (purchaseOrders.length !== purchaseOrderIds.length) {
-        return {
-          success: false,
-          message:
-            "One or more selected purchase orders do not belong to this programme.",
-        };
-      }
-    }
-
-    // 4. Create Style
-    const style = await prisma.style.create({
-      data: {
-        styleNumber: data.styleNumber.trim(),
-        color: data.color.trim(),
-
-        purchaseOrders: {
-          create: purchaseOrderIds.map((purchaseOrderId) => ({
-            purchaseOrderId,
-          })),
+      const order = await tx.order.create({
+        data: {
+          styleId: style.id,
+          factory: values.factory,
+          qtySet: values.qtySet,
+          qtyPiece: values.qtyPiece,
+          actualPrice: values.actualPrice,
+          factoryPrice: values.factoryPrice,
+          totalActualValue: totals.totalActualValue,
+          totalFactoryValue: totals.totalFactoryValue,
+          shipDate: values.shipDate ? new Date(values.shipDate) : null,
+          status: (values.status ?? "PENDING") as CreateOrderData["status"],
+          remarks: values.remarks,
+          createdById: session.user.id,
         },
-      },
-    });
+        include: orderHistoryInclude,
+      });
 
-    // 5. Calculate total values
-    const totalActualValue =
-      data.qtyPiece != null && data.actualPrice != null
-        ? data.qtyPiece * data.actualPrice
-        : null;
+      const historyData = serializeOrderForHistory(order);
+      const version = await tx.orderVersion.create({
+        data: {
+          orderId: order.id,
+          version: 1,
+          action: "CREATE",
+          data: historyData,
+          createdById: session.user.id,
+        },
+      });
 
-    const totalFactoryValue =
-      data.qtyPiece != null && data.factoryPrice != null
-        ? data.qtyPiece * data.factoryPrice
-        : null;
+      await tx.orderAuditLog.create({
+        data: {
+          orderId: order.id,
+          action: "CREATE",
+          changedFields: Object.keys(values),
+          oldValues: {},
+          newValues: values,
+          actedById: session.user.id,
+        },
+      });
 
-    // 6. Create Order
+      await tx.orderSnapshot.create({
+        data: {
+          orderId: order.id,
+          userId: session.user.id,
+          versionId: version.id,
+          label: "Initial creation",
+          data: historyData,
+        },
+      });
 
-    const order = await prisma.order.create({
-      data: {
-        styleId: style.id,
-
-        factory: data.factory?.trim() || null,
-        qtySet: data.qtySet ?? null,
-        qtyPiece: data.qtyPiece ?? null,
-
-        actualPrice: data.actualPrice ?? null,
-        factoryPrice: data.factoryPrice ?? null,
-
-        totalActualValue,
-        totalFactoryValue,
-
-        shipDate: data.shipDate ? new Date(data.shipDate) : null,
-
-        status: data.status ?? "PENDING",
-        remarks: data.remarks?.trim() || null,
-
-        createdById,
-      },
+      return order;
     });
 
     return {
-      success: true,
+      success: true as const,
       order: {
-        ...order,
-        actualPrice: order.actualPrice?.toNumber() ?? null,
-        factoryPrice: order.factoryPrice?.toNumber() ?? null,
-        totalActualValue: order.totalActualValue?.toNumber() ?? null,
-        totalFactoryValue: order.totalFactoryValue?.toNumber() ?? null,
+        ...result,
+        actualPrice: result.actualPrice?.toNumber() ?? null,
+        factoryPrice: result.factoryPrice?.toNumber() ?? null,
+        totalActualValue: result.totalActualValue?.toNumber() ?? null,
+        totalFactoryValue: result.totalFactoryValue?.toNumber() ?? null,
       },
     };
   } catch (error) {
     console.error("Create order error:", error);
-
-    return {
-      success: false,
-      message: "Failed to create order.",
-    };
+    const message = error instanceof Error && !error.message.includes("Transaction")
+      ? error.message
+      : "Failed to create order.";
+    return { success: false as const, message };
   }
 }

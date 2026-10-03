@@ -11,7 +11,6 @@ import {
 import { getOrderById } from "@/actions/order/get-order-by-id";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type PageProps = {
@@ -62,17 +61,17 @@ function formatStatus(status: string) {
     .join(" ");
 }
 
-function getFactoryShortName(factory: string | null) {
-  if (!factory) return "—";
+// function getFactoryShortName(factory: string | null) {
+//   if (!factory) return "—";
 
-  return factory.trim().split(/\s+/)[0] || "—";
-}
+//   return factory.trim().split(/\s+/)[0] || "—";
+// }
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="space-y-1">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <div className="break-words text-sm font-medium">{value ?? "—"}</div>
+      <div className="wrap-break-words text-sm font-medium">{value ?? "—"}</div>
     </div>
   );
 }
@@ -100,11 +99,8 @@ export default async function ViewOrderPage({ params }: PageProps) {
       ? [order.purchaseOrder, ...purchaseOrders]
       : purchaseOrders;
 
-  const primaryPurchaseOrder = order.purchaseOrder ?? purchaseOrders[0] ?? null;
-
-  const buyerName = primaryPurchaseOrder?.programme.buyer.name ?? "—";
-
-  const programmeName = primaryPurchaseOrder?.programme.name ?? "—";
+const buyerName = order.style.programme.buyer.name ?? "—";
+const programmeName = order.style.programme.name ?? "—";
 
   const poNumbers = displayPurchaseOrders
     .map((po) => po.poNumber)

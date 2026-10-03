@@ -13,41 +13,34 @@ export async function getOrderById(id: string) {
   }
 
   try {
-    const order = await prisma.order.findFirst({
-      where: {
-        id,
-        deletedAt: null,
-      },
+    const order = await prisma.order.findUnique({
+  where: { id },
+  include: {
+    style: {
       include: {
-        style: {
+        programme: {
           include: {
-            purchaseOrders: {
-              include: {
-                purchaseOrder: {
-                  include: {
-                    programme: {
-                      include: {
-                        buyer: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+            buyer: true,
           },
         },
-
-        purchaseOrder: {
+        purchaseOrders: {
           include: {
-            programme: {
-              include: {
-                buyer: true,
-              },
-            },
+            purchaseOrder: true,
           },
         },
       },
-    });
+    },
+    purchaseOrder: {
+      include: {
+        programme: {
+          include: {
+            buyer: true,
+          },
+        },
+      },
+    },
+  },
+});
 
     if (!order) {
       return {

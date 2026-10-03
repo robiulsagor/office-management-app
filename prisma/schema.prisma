@@ -349,6 +349,9 @@ model Style {
   styleNumber String
   color       String
 
+  programmeId String
+  programme   Programme @relation(fields: [programmeId], references: [id])
+
   orders         Order[]
   purchaseOrders StylePurchaseOrder[]
 
@@ -356,6 +359,7 @@ model Style {
   updatedAt DateTime @updatedAt
 
   @@index([styleNumber])
+  @@index([programmeId])
 }
 
 model StylePurchaseOrder {
@@ -393,8 +397,9 @@ model Programme {
   buyerId String
   name    String
 
-  buyer          Buyer           @relation(fields: [buyerId], references: [id])
+  buyer          Buyer                @relation(fields: [buyerId], references: [id])
   purchaseOrders PurchaseOrder[]
+  styles         Style[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
