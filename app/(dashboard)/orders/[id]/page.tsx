@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import OrderHistory from "@/components/orders/order-history";
 import { getOrderHistory } from "@/actions/order/get-order-history";
+import DeleteOrderButton from "@/components/orders/delete-order-button";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -138,13 +139,26 @@ export default async function ViewOrderPage({ params }: PageProps) {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-3">
+          <DeleteOrderButton orderId={order.id} />
+
+          <Link
+            href={`/orders/${order.id}/edit`}
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit Order
+          </Link>
+        </div>
+
+        {/*         
         <Link
           href={`/orders/${order.id}/edit`}
           className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <Pencil className="mr-2 h-4 w-4" />
           Edit Order
-        </Link>
+        </Link> */}
       </div>
 
       {/* Order summary */}
