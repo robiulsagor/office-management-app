@@ -80,17 +80,17 @@ export default function FinancialSummary() {
     {
       title: "Total Deposits",
       amount: summary.totalDeposits,
-      color: "text-blue-700",
+      // color: "text-blue-700",
     },
     {
       title: "Bazar Spending",
       amount: summary.bazarSpending,
-      color: "text-orange-700",
+      // color: "text-orange-700",
     },
     {
       title: "Other Expenses",
       amount: summary.otherExpenses,
-      color: "text-purple-700",
+      // color: "text-purple-700",
     },
     {
       title: "Remaining Balance",
@@ -114,7 +114,7 @@ export default function FinancialSummary() {
             <p className="text-sm font-medium text-slate-500">{card.title}</p>
 
             <p
-              className={`mt-2 wrap-break-words text-2xl font-bold ${card.color}`}
+              className={`mt-2 wrap-break-words text-2xl font-bold ${card.color || "text-slate-800"}`}
             >
               ৳{money(card.amount)}
             </p>

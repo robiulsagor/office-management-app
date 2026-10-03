@@ -6,6 +6,7 @@ import DashboardSummary from "@/components/dashboard/dashboard-summary";
 import QuickActions from "@/components/dashboard/quick-actions";
 import RecentBazar from "@/components/dashboard/recent-bazar";
 import RecentExpenses from "@/components/dashboard/recent-expenses";
+import FinancialSummary from "@/components/financial-summary";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -18,13 +19,14 @@ const Dashboard = async () => {
   return (
     <div className="space-y-6">
       <DashboardHeader />
+      <FinancialSummary />
 
-      <DashboardSummary
+      {/* <DashboardSummary
         totalEmployees={data.summary.totalEmployees}
         activeEmployees={data.summary.activeEmployees}
         monthlyExpense={data.summary.monthlyExpense}
         monthlyBazar={data.summary.monthlyBazar}
-      />
+      /> */}
 
       <StaggerContainer className="grid gap-6 xl:grid-cols-2">
         <StaggerItem key="recent-expenses" className="w-full">

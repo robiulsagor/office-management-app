@@ -3,6 +3,7 @@ import { signOut } from "next-auth/react";
 
 import {
   Banknote,
+  BanknoteArrowDown,
   Bus,
   Grid2X2,
   ListOrdered,
@@ -57,20 +58,27 @@ const menuItems: MenuTypes[] = [
   },
   {
     id: 5,
+    path: "/deposit",
+    label: "Deposit",
+    icon: BanknoteArrowDown,
+    roles: ["super_admin", "admin"],
+  },
+  {
+    id: 6,
     path: "/bazar",
     label: "Bazar",
     icon: ShoppingBasket,
     roles: ["super_admin", "admin"],
   },
   {
-    id: 6,
+    id: 7,
     path: "/expenses",
     label: "Expenses",
     icon: Banknote,
     roles: ["super_admin", "admin"],
   },
   {
-    id: 7,
+    id: 8,
     path: "/conveyance",
     label: "Conveyance",
     icon: Bus,
