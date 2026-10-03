@@ -36,7 +36,7 @@ export default async function EditOrderPage({
   };
 
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
+    <main className="mx-auto w-full space-y-6 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Edit Order</h1>
