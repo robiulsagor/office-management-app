@@ -39,7 +39,7 @@ export async function getOrders() {
       },
 
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
     });
 
