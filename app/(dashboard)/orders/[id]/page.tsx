@@ -144,7 +144,7 @@ export default async function ViewOrderPage({ params }: PageProps) {
 
           <Link
             href={`/orders/${order.id}/edit`}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex py-2 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Pencil className="mr-2 h-4 w-4" />
             Edit Order

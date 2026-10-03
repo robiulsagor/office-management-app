@@ -29,31 +29,35 @@ export default function DeleteOrderButton({
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  async function handleDelete() {
-    if (isDeleting) return;
+  
 
-    setError("");
-    setIsDeleting(true);
+async function handleDelete() {
+  if (isDeleting) return;
 
-    try {
-      const result = await deleteOrder(orderId);
+  setError("");
+  setIsDeleting(true);
 
-      if (!result.success) {
-        setError(result.message || "Failed to delete order.");
-        return;
-      }
+  try {
+    const result = await deleteOrder(orderId);
 
-      setOpen(false);
-      toast.success("Order deleted successfully.");
-      router.replace("/orders");
-      router.refresh();
-    } catch (err) {
-      console.error("Delete order failed:", err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsDeleting(false);
+    if (!result.success) {
+      setError(result.message || "Failed to delete order.");
+      return;
     }
+
+    setOpen(false);
+    toast.success("Order deleted successfully.");
+
+    router.replace("/orders");
+  } catch (err) {
+    console.error("Delete order failed:", err);
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setIsDeleting(false);
   }
+}
+
+
 
   return (
     <>

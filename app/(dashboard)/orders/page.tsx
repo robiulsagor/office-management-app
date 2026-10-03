@@ -46,15 +46,15 @@ export default async function OrdersPage() {
             >
               Create Order
             </Link>
-          </div>
 
-          <Link
-            href="/orders/trash"
-            className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Deleted Orders
-          </Link>
+            <Link
+              href="/orders/trash"
+              className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Deleted Orders
+            </Link>
+          </div>
         </div>
 
         <OrdersView orders={result.orders} />
