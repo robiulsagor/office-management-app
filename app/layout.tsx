@@ -3,7 +3,8 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
+import PageTransitionProvider from "@/components/providers/page-transition-provider";
 
 const roboto = Poppins({
   weight: ["400", "500"],
@@ -22,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("h-full", "antialiased", roboto.className)}>
       <body>
-        <div><Toaster/></div>
-       {children}
+        <div>
+          <Toaster />
+        </div>
+        <PageTransitionProvider>{children}</PageTransitionProvider>
       </body>
     </html>
   );
