@@ -23,7 +23,6 @@ async function main() {
     });
   }
 
-  console.log("Expense categories seeded successfully.");
 }
 
 main()

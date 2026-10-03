@@ -12,6 +12,8 @@ import { getOrderById } from "@/actions/order/get-order-by-id";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import OrderHistory from "@/components/orders/order-history";
+import { getOrderHistory } from "@/actions/order/get-order-history";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -99,8 +101,8 @@ export default async function ViewOrderPage({ params }: PageProps) {
       ? [order.purchaseOrder, ...purchaseOrders]
       : purchaseOrders;
 
-const buyerName = order.style.programme.buyer.name ?? "—";
-const programmeName = order.style.programme.name ?? "—";
+  const buyerName = order.style.programme.buyer.name ?? "—";
+  const programmeName = order.style.programme.name ?? "—";
 
   const poNumbers = displayPurchaseOrders
     .map((po) => po.poNumber)
@@ -109,8 +111,11 @@ const programmeName = order.style.programme.name ?? "—";
   const quantitySet = order.qtySet ?? null;
   const quantityPiece = order.qtyPiece ?? null;
 
+  // Fetch order history data (versions, audit logs, snapshots)
+  const historyResult = await getOrderHistory(id);
+
   return (
-    <div className="min-h-screen space-y-6 bg-muted/40 p-4 md:p-6">
+    <div className="min-h-screen space-y-6 bg-muted/40 p-2">
       {/* Page header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
@@ -297,6 +302,12 @@ const programmeName = order.style.programme.name ?? "—";
           Edit Order
         </Link>
       </div>
+
+      <OrderHistory
+        versions={historyResult.success ? historyResult.versions : []}
+        auditLogs={historyResult.success ? historyResult.auditLogs : []}
+        snapshots={historyResult.success ? historyResult.snapshots : []}
+      />
     </div>
   );
 }

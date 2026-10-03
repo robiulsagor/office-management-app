@@ -80,7 +80,6 @@ export async function createEmployee(data: unknown) {
       }
     }
 
-    console.log("Creating employee with data:", parsed.data);
 
     const employee = await prisma.employee.create({
       data: {
@@ -97,8 +96,6 @@ export async function createEmployee(data: unknown) {
         emergencyContact: emergencyContact || null,
       },
     });
-
-    console.log("CREATED EMPLOYEE:", employee);
 
     return {
       success: true,

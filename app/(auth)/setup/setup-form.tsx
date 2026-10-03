@@ -23,7 +23,6 @@ const SetupForm = () => {
   });
 
   const onSubmit = async (data: SetupFormValues) => {
-    console.log("Setup submitted:", data);
     const result = await setupAdmin(data);
 
     if (!result.success) {
