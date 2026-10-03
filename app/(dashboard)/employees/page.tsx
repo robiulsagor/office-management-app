@@ -207,7 +207,7 @@ const Employees = () => {
             </CardHeader>
 
             <CardContent className="p-0">
-                           <EmployeeTable
+              <EmployeeTable
                 filteredEmployees={filteredEmployees}
                 handleViewEmployee={handleViewEmployee}
                 handleEditEmployee={handleEditEmployee}
