@@ -113,13 +113,13 @@ export default function FinancialSummary({
           {cards.map((card) => (
             <Card key={card.title}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.title}
                 </CardTitle>
               </CardHeader>
 
               <CardContent>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold text-slate-700">
                   {formatMoney(card.value ?? 0)}
                 </p>
               </CardContent>
