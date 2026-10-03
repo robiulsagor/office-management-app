@@ -17,7 +17,8 @@ import {
   getEmployees,
 } from "@/actions/employee/employee-actions";
 import toast from "react-hot-toast";
-
+import StaggerContainer from "@/components/animations/stagger-container";
+import StaggerItem from "@/components/animations/stagger-item";
 
 const Employees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -136,7 +137,7 @@ const Employees = () => {
   }, []);
 
   return (
-    <div className="mx-auto w-full space-y-6 pb-10">
+    <div className="mx-auto w-full space-y-6 ">
       <title>Employees - Adventure Clothing & Sourcing</title>
       {/* ============================================ */}
       {/* Page Header */}
@@ -172,51 +173,50 @@ const Employees = () => {
       {/* Summary Cards */}
       {/* ============================================ */}
 
-      <EmployeeStats
-        totalEmployees={employees.length}
-        activeEmployees={activeEmployees}
-        inactiveEmployees={inactiveEmployees}
-      />
+      <StaggerContainer className="flex flex-col gap-6 ">
+        <EmployeeStats
+          totalEmployees={employees.length}
+          activeEmployees={activeEmployees}
+          inactiveEmployees={inactiveEmployees}
+        />
 
-      {/* ============================================ */}
-      {/* Employee List */}
-      {/* ============================================ */}
+        {/* ============================================ */}
+        {/* Employee List */}
+        {/* ============================================ */}
 
-      <Card>
-        <CardHeader className="space-y-4">
-          <div>
-            <CardTitle className="text-lg">Employee List</CardTitle>
+        <StaggerItem key="employee-list" className="w-full">
+          <Card>
+            <CardHeader className="space-y-4">
+              <div>
+                <CardTitle className="text-lg">Employee List</CardTitle>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              View and manage all employees.
-            </p>
-          </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  View and manage all employees.
+                </p>
+              </div>
 
-          {/* Filters */}
-          <EmployeeFilters
-            search={search}
-            setSearch={setSearch}
-            department={department}
-            setDepartment={setDepartment}
-            status={status}
-            setStatus={setStatus}
-          />
-        </CardHeader>
+              {/* Filters */}
+              <EmployeeFilters
+                search={search}
+                setSearch={setSearch}
+                department={department}
+                setDepartment={setDepartment}
+                status={status}
+                setStatus={setStatus}
+              />
+            </CardHeader>
 
-        <CardContent className="p-0">
-          {/* ======================================== */}
-          {/* Desktop Table */}
-          {/* ======================================== */}
-
-          <EmployeeTable
-            filteredEmployees={filteredEmployees}
-            handleViewEmployee={handleViewEmployee}
-            handleEditEmployee={handleEditEmployee}
-            handleDeleteEmployee={handleDeleteEmployee}
-          />
-        </CardContent>
-      </Card>
-
+            <CardContent className="p-0">
+                           <EmployeeTable
+                filteredEmployees={filteredEmployees}
+                handleViewEmployee={handleViewEmployee}
+                handleEditEmployee={handleEditEmployee}
+                handleDeleteEmployee={handleDeleteEmployee}
+              />
+            </CardContent>
+          </Card>
+        </StaggerItem>
+      </StaggerContainer>
       {/* ============================================ */}
       {/* Add / Edit Dialog */}
       {/* ============================================ */}
