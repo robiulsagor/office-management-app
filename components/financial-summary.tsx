@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -33,7 +32,12 @@ export default function FinancialSummary() {
         if (ignore) return;
 
         if (!result.success) {
-          setError(result.message);
+          setError(result.message ?? "Failed to load financial summary.");
+          return;
+        }
+
+        if (!result.summary) {
+          setError("Financial summary is unavailable.");
           return;
         }
 
@@ -91,10 +95,7 @@ export default function FinancialSummary() {
     {
       title: "Remaining Balance",
       amount: summary.remainingBalance,
-      color:
-        summary.remainingBalance < 0
-          ? "text-red-700"
-          : "text-green-700",
+      color: summary.remainingBalance < 0 ? "text-red-700" : "text-green-700",
     },
   ];
 
@@ -110,11 +111,11 @@ export default function FinancialSummary() {
             key={card.title}
             className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <p className="text-sm font-medium text-slate-500">
-              {card.title}
-            </p>
+            <p className="text-sm font-medium text-slate-500">{card.title}</p>
 
-            <p className={`mt-2 wrap-break-words text-2xl font-bold ${card.color}`}>
+            <p
+              className={`mt-2 wrap-break-words text-2xl font-bold ${card.color}`}
+            >
               ৳{money(card.amount)}
             </p>
           </div>
