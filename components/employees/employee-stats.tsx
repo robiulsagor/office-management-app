@@ -1,6 +1,7 @@
 import React from 'react'
 import { Card, CardContent } from '../ui/card'
 import { UserCheck, Users, UserX } from 'lucide-react'
+import StaggerItem from '../animations/stagger-item'
 
 interface EmployeeStatsProps {
   totalEmployees: number
@@ -12,6 +13,7 @@ const EmployeeStats = ({ totalEmployees, activeEmployees, inactiveEmployees }: E
   return (
     <div className="grid gap-4 sm:grid-cols-3">
         {/* Total */}
+        <StaggerItem key="total" className="w-full">
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
             <div className="flex size-11 items-center justify-center rounded-xl bg-slate-100">
@@ -25,8 +27,10 @@ const EmployeeStats = ({ totalEmployees, activeEmployees, inactiveEmployees }: E
             </div>
           </CardContent>
         </Card>
+        </StaggerItem>
 
         {/* Active */}
+        <StaggerItem key="active" className="w-full">
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
             <div className="flex size-11 items-center justify-center rounded-xl bg-green-50">
@@ -40,8 +44,10 @@ const EmployeeStats = ({ totalEmployees, activeEmployees, inactiveEmployees }: E
             </div>
           </CardContent>
         </Card>
+        </StaggerItem>
 
         {/* Inactive */}
+        <StaggerItem key="inactive" className="w-full">
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
             <div className="flex size-11 items-center justify-center rounded-xl bg-red-50">
@@ -57,6 +63,7 @@ const EmployeeStats = ({ totalEmployees, activeEmployees, inactiveEmployees }: E
             </div>
           </CardContent>
         </Card>
+        </StaggerItem>
       </div>
   )
 }

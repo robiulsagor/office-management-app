@@ -30,6 +30,9 @@ const EmployeeTable = ({
 }) => {
   return (
     <>
+      {/* ======================================== */}
+      {/* Desktop Table */}
+      {/* ======================================== */}
       <div className="hidden overflow-x-auto md:block">
         {filteredEmployees.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -112,7 +115,9 @@ const EmployeeTable = ({
                   {/* Joining Date */}
                   <td className="px-4 py-4">
                     <span className="text-sm">
-                      {new Date(employee.joiningDate).toLocaleDateString("en-GB")}
+                      {new Date(employee.joiningDate).toLocaleDateString(
+                        "en-GB",
+                      )}
                     </span>
                   </td>
 
@@ -130,11 +135,11 @@ const EmployeeTable = ({
                   </td>
 
                   {/* Actions */}
-                  <td className="px-4 py-4">
-                    <DropdownMenu>
+                  <td className="px-4 py-4" >
+                    <DropdownMenu 
+                    >
                       <DropdownMenuTrigger className="inline-flex size-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground">
                         <MoreHorizontal className="size-4" />
-                        <span className="sr-only">Open menu</span>
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent align="end">

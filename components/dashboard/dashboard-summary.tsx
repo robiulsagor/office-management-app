@@ -1,5 +1,7 @@
 import { Users, UserCheck, ShoppingBasket, Wallet } from "lucide-react";
 import Link from "next/link";
+import StaggerItem from "../animations/stagger-item";
+import StaggerContainer from "../animations/stagger-container";
 
 type DashboardSummaryProps = {
   totalEmployees: number;
@@ -50,37 +52,39 @@ const DashboardSummary = ({
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {cards.map((card) => {
-            const Icon = card.icon;
+    <StaggerContainer  className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {cards.map((card) => {
+        const Icon = card.icon;
 
-            return (
-              <Link
-                key={card.title}
-                href={card.href}
-                className="group rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {card.title}
-                  </p>
+        return (
+          <StaggerItem key={card.title} className="w-full group rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40">
+            <Link
+              key={card.title}
+              href={card.href}
+              className=""
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {card.title}
+                </p>
 
-                  <div className="rounded-lg border p-2">
-                    <Icon className="size-4 text-muted-foreground" />
-                  </div>
+                <div className="rounded-lg border p-2">
+                  <Icon className="size-4 text-muted-foreground" />
                 </div>
+              </div>
 
-                <p className="mt-4 text-2xl font-bold tracking-tight">
-                  {card.value}
-                </p>
+              <p className="mt-4 text-2xl font-bold tracking-tight">
+                {card.value}
+              </p>
 
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {card.description}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {card.description}
+              </p>
+            </Link>
+          </StaggerItem>
+        );
+      })}
+    </StaggerContainer >
   );
 };
 

@@ -1,4 +1,6 @@
 import { getDashboardData } from "@/actions/dashboard/get-dashboard-data";
+import StaggerContainer from "@/components/animations/stagger-container";
+import StaggerItem from "@/components/animations/stagger-item";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import DashboardSummary from "@/components/dashboard/dashboard-summary";
 import QuickActions from "@/components/dashboard/quick-actions";
@@ -8,7 +10,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard - Office Management App",
-  };
+};
 
 const Dashboard = async () => {
   const data = await getDashboardData();
@@ -24,11 +26,15 @@ const Dashboard = async () => {
         monthlyBazar={data.summary.monthlyBazar}
       />
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <RecentExpenses expenses={data.recentExpenses} />
-        <RecentBazar entries={data.recentBazar} />
-      </section>
-      
+      <StaggerContainer className="grid gap-6 xl:grid-cols-2">
+        <StaggerItem key="recent-expenses" className="w-full">
+          <RecentExpenses expenses={data.recentExpenses} />
+        </StaggerItem>
+        <StaggerItem key="recent-bazar" className="w-full">
+          <RecentBazar entries={data.recentBazar} />
+        </StaggerItem>
+      </StaggerContainer>
+
       <QuickActions />
     </div>
   );
