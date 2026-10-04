@@ -2,14 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 
-// Keep your existing authentication/session checks in this action.
-
-const START_DATE = new Date("2026-10-01T00:00:00+06:00");
-
 type FinancialSummaryData = {
   totalDeposits: number;
   bazarSpending: number;
   otherExpenses: number;
+  totalExpenses: number;
   remainingBalance: number;
 };
 
@@ -34,18 +31,16 @@ function getMonthRange(month: string) {
 
 export async function getFinancialSummary(month: string) {
   try {
-    // Keep your existing session validation here before querying financial data.
+    // Keep your existing authentication and authorization checks here.
 
     const { start, end } = getMonthRange(month);
-
-    // Don't include data from before the new system's start date.
-    const effectiveStart =
-      start < START_DATE ? START_DATE : start;
+    const effectiveStart = start;
 
     const emptySummary: FinancialSummaryData = {
       totalDeposits: 0,
       bazarSpending: 0,
       otherExpenses: 0,
+      totalExpenses: 0,
       remainingBalance: 0,
     };
 
@@ -80,17 +75,11 @@ export async function getFinancialSummary(month: string) {
         }),
       ]);
 
-    const totalDeposits = Number(
-      depositResult._sum.amount ?? 0,
-    );
+    const totalDeposits = Number(depositResult._sum.amount ?? 0);
+    const bazarSpending = Number(bazarResult._sum.price ?? 0);
+    const otherExpenses = Number(expenseResult._sum.amount ?? 0);
 
-    const bazarSpending = Number(
-      bazarResult._sum.price ?? 0,
-    );
-
-    const otherExpenses = Number(
-      expenseResult._sum.amount ?? 0,
-    );
+    const totalExpenses = bazarSpending + otherExpenses;
 
     return {
       success: true as const,
@@ -98,8 +87,8 @@ export async function getFinancialSummary(month: string) {
         totalDeposits,
         bazarSpending,
         otherExpenses,
-        remainingBalance:
-          totalDeposits - bazarSpending - otherExpenses,
+        totalExpenses,
+        remainingBalance: totalDeposits - totalExpenses,
       },
     };
   } catch (error) {

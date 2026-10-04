@@ -10,7 +10,7 @@ import FinancialSummary from "@/components/financial-summary";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard - Office Management App",
+  title: "Dashboard - Avdenture Clothing",
 };
 
 const Dashboard = async () => {

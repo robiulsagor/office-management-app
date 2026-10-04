@@ -157,6 +157,8 @@ export default function DepositPage() {
       if (resultAfterSave.success) {
         setDeposits(resultAfterSave.deposits as Deposit[]);
       }
+
+      window.dispatchEvent(new Event("financial-summary-updated"));
     } catch {
       setError("Something went wrong while saving the deposit.");
     } finally {
