@@ -21,7 +21,7 @@ export default async function RootLayout({
   <SessionProviderWrapper>
     <ActivityTracker />
 
-    <main className="h-screen bg-slate-200 p-3 w-full md:flex md:gap-1.5 border">
+    <main className="h-screen bg-slate-200 p-1 w-full md:flex md:gap-1.5 border">
       <Sidebar />
 
       <div className="flex-1 w-full h-full flex flex-col">
