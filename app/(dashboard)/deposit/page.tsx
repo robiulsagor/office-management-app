@@ -192,7 +192,7 @@ export default function DepositPage() {
   );
 
   return (
-    <main className="mx-auto  space-y-6 p-4">
+    <main className="mx-auto  space-y-6 p-1 md:p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
@@ -210,12 +210,12 @@ export default function DepositPage() {
 
       {/* Create deposit form */}
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-5 text-lg font-semibold text-slate-800">
+        <h2 className="mb-5 text-lg font-semibold text-slate-700">
           Add New Deposit
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5 text-sm">
             <div>
               <label
                 htmlFor="deposit-date"
@@ -229,7 +229,7 @@ export default function DepositPage() {
                 required
                 value={date}
                 onChange={(event) => setDate(event.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
@@ -249,7 +249,7 @@ export default function DepositPage() {
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
                 placeholder="Enter amount"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
@@ -266,7 +266,7 @@ export default function DepositPage() {
                 onChange={(event) =>
                   setPurpose(event.target.value as "" | "BAZAR" | "OTHER")
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="">Not specified</option>
                 <option value="BAZAR">Bazar</option>
@@ -274,7 +274,7 @@ export default function DepositPage() {
               </select>
             </div>
 
-            <div>
+            <div className="lg:col-span-2">
               <label
                 htmlFor="deposit-remarks"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -288,7 +288,7 @@ export default function DepositPage() {
                 value={remarks}
                 onChange={(event) => setRemarks(event.target.value)}
                 placeholder="Optional remarks"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function DepositPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Saving..." : "Save Deposit"}
           </button>
@@ -344,13 +344,13 @@ export default function DepositPage() {
           </p>
         </div>
 
-        <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-4 text-sm">
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search amount, purpose, remarks..."
-            className="rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500 md:col-span-2"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500 md:col-span-2"
           />
 
           <input
@@ -358,7 +358,7 @@ export default function DepositPage() {
             type="date"
             value={fromDate}
             onChange={(event) => setFromDate(event.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
           />
 
           <input
@@ -367,7 +367,7 @@ export default function DepositPage() {
             value={toDate}
             min={fromDate || undefined}
             onChange={(event) => setToDate(event.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
           />
         </div>
 

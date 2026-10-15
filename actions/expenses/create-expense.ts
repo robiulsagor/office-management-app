@@ -1,81 +1,119 @@
-    "use server";
 
-    import { auth } from "@/auth";
-    import { prisma } from "@/lib/prisma";
+"use server";
 
-    type CreateExpenseData = {
-    date: string;
-    categoryId: string;
-    amount: number;
-    description?: string;
-    };
+import { requireActiveUser } from "@/lib/auth/require-active-user";
+import { prisma } from "@/lib/prisma";
 
-    export async function createExpense(data: CreateExpenseData) {
-    try {
-        const session = await auth();
+type CreateExpenseItem = {
+  categoryId: string;
+  amount: number;
+  description?: string;
+};
 
-        if (!session?.user?.id) {
-        return {
-            success: false,
-            message: "You must be logged in to create an expense.",
-        };
-        }
+type CreateExpenseData = {
+  date: string;
+  items: CreateExpenseItem[];
+};
 
-        if (!data.date) {
-        return {
-            success: false,
-            message: "Expense date is required.",
-        };
-        }
+export async function createExpense(data: CreateExpenseData) {
+  try {
+    const authResult = await requireActiveUser();
 
-        if (!data.categoryId) {
-        return {
-            success: false,
-            message: "Expense category is required.",
-        };
-        }
+    if (!authResult.ok) {
+      return { success: false, message: authResult.message };
+    }
 
-        if (data.amount < 0) {
-        return {
-            success: false,
-            message: "Expense amount cannot be negative.",
-        };
-        }
+    if (!data.date) {
+      return { success: false, message: "Expense date is required." };
+    }
 
-        const category = await prisma.expenseCategory.findFirst({
-        where: {
-            id: data.categoryId,
-            isActive: true,
-        },
-        });
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      return { success: false, message: "Add at least one expense item." };
+    }
 
-        if (!category) {
-        return {
-            success: false,
-            message: "Invalid or inactive expense category.",
-        };
-        }
+    const date = new Date(`${data.date}T12:00:00`);
 
-        await prisma.expense.create({
-        data: {
-            date: new Date(`${data.date}T12:00:00`),
-            categoryId: data.categoryId,
-            amount: data.amount,
-            description: data.description?.trim() || null,
-            createdById: session.user.id,
-        },
-        });
+    if (Number.isNaN(date.getTime())) {
+      return { success: false, message: "Invalid expense date." };
+    }
 
-        return {
-        success: true,
-        message: "Expense created successfully.",
-        };
-    } catch (error) {
-        console.error("Create expense error:", error);
+    for (const item of data.items) {
+      if (!item.categoryId) {
+        return { success: false, message: "Select a category for every item." };
+      }
 
-        return {
+      if (!Number.isFinite(item.amount) || item.amount < 0) {
+        return { success: false, message: "Enter a valid amount for every item." };
+      }
+    }
+
+    const categoryIds = [...new Set(data.items.map((item) => item.categoryId))];
+
+    const activeCategories = await prisma.expenseCategory.findMany({
+      where: {
+        id: { in: categoryIds },
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (activeCategories.length !== categoryIds.length) {
+      return {
         success: false,
-        message: "Something went wrong while creating the expense.",
-        };
+        message: "One or more categories are invalid or inactive.",
+      };
     }
-    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const startDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+      );
+      const endDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1,
+      );
+
+      let entry = await tx.expenseEntry.findFirst({
+        where: {
+          date: { gte: startDate, lt: endDate },
+        },
+        select: { id: true },
+      });
+
+      if (!entry) {
+        entry = await tx.expenseEntry.create({
+          data: { date },
+          select: { id: true },
+        });
+      }
+
+      await tx.expense.createMany({
+        data: data.items.map((item) => ({
+          expenseEntryId: entry.id,
+          categoryId: item.categoryId,
+          amount: item.amount,
+          description: item.description?.trim() || null,
+          createdById: authResult.user.id,
+        })),
+      });
+
+      return { entryId: entry.id };
+    });
+
+    return {
+      success: true,
+      message: `${data.items.length} expense item(s) saved successfully.`,
+      entryId: result.entryId,
+    };
+  } catch (error) {
+    console.error("Create expense error:", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while creating the expenses.",
+    };
+  }
+}

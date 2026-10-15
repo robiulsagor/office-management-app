@@ -1,3 +1,4 @@
+
 "use server";
 
 import { requireActiveUser } from "@/lib/auth/require-active-user";
@@ -20,6 +21,7 @@ export async function getExpenses(month: string): Promise<{
 }> {
   try {
     const authResult = await requireActiveUser();
+
     if (!authResult.ok) {
       return {
         success: false,
@@ -30,28 +32,35 @@ export async function getExpenses(month: string): Promise<{
 
     const [year, monthNumber] = month.split("-").map(Number);
 
-    if (!year || !monthNumber) {
-      return {
-        success: false,
-        message: "Invalid month.",
-        data: [],
-      };
+    if (
+      !year ||
+      !monthNumber ||
+      monthNumber < 1 ||
+      monthNumber > 12
+    ) {
+      return { success: false, message: "Invalid month.", data: [] };
     }
 
-    const startDate = new Date(year, monthNumber - 1, 1, 0, 0, 0);
-    const endDate = new Date(year, monthNumber, 1, 0, 0, 0);
+    const startDate = new Date(year, monthNumber - 1, 1);
+    const endDate = new Date(year, monthNumber, 1);
 
     const expenses = await prisma.expense.findMany({
       where: {
-        date: {
-          gte: startDate,
-          lt: endDate,
+        expenseEntry: {
+          date: {
+            gte: startDate,
+            lt: endDate,
+          },
         },
       },
-      orderBy: {
-        date: "desc",
-      },
+      orderBy: [
+        { expenseEntry: { date: "desc" } },
+        { createdAt: "desc" },
+      ],
       include: {
+        expenseEntry: {
+          select: { date: true },
+        },
         category: {
           select: {
             id: true,
@@ -65,7 +74,7 @@ export async function getExpenses(month: string): Promise<{
       success: true,
       data: expenses.map((expense) => ({
         id: expense.id,
-        date: expense.date.toISOString().split("T")[0],
+        date: expense.expenseEntry.date.toISOString().split("T")[0],
         categoryId: expense.categoryId,
         categoryName: expense.category.name,
         amount: Number(expense.amount),

@@ -2,13 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 
-type FinancialSummaryData = {
-  totalDeposits: number;
-  bazarSpending: number;
-  otherExpenses: number;
-  totalExpenses: number;
-  remainingBalance: number;
-};
+// type FinancialSummaryData = {
+//   totalDeposits: number;
+//   bazarSpending: number;
+//   otherExpenses: number;
+//   totalExpenses: number;
+//   remainingBalance: number;
+// };
 
 function getMonthRange(month: string) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
@@ -34,44 +34,53 @@ export async function getFinancialSummary(month: string) {
     // Keep your existing authentication and authorization checks here.
 
     const { start, end } = getMonthRange(month);
-    const effectiveStart = start;
 
-    const emptySummary: FinancialSummaryData = {
-      totalDeposits: 0,
-      bazarSpending: 0,
-      otherExpenses: 0,
-      totalExpenses: 0,
-      remainingBalance: 0,
-    };
-
-    if (effectiveStart >= end) {
-      return { success: true as const, summary: emptySummary };
-    }
+    // const emptySummary: FinancialSummaryData = {
+    //   totalDeposits: 0,
+    //   bazarSpending: 0,
+    //   otherExpenses: 0,
+    //   totalExpenses: 0,
+    //   remainingBalance: 0,
+    // };
 
     const dateFilter = {
-      gte: effectiveStart,
+      gte: start,
       lt: end,
     };
 
     const [depositResult, bazarResult, expenseResult] =
       await Promise.all([
         prisma.deposit.aggregate({
-          where: { date: dateFilter },
-          _sum: { amount: true },
+          where: {
+            date: dateFilter,
+          },
+          _sum: {
+            amount: true,
+          },
         }),
 
         prisma.bazarEntryItem.aggregate({
           where: {
             bazarEntry: {
-              is: { date: dateFilter },
+              is: {
+                date: dateFilter,
+              },
             },
           },
-          _sum: { price: true },
+          _sum: {
+            price: true,
+          },
         }),
 
         prisma.expense.aggregate({
-          where: { date: dateFilter },
-          _sum: { amount: true },
+          where: {
+            expenseEntry: {
+              date: dateFilter,
+            },
+          },
+          _sum: {
+            amount: true,
+          },
         }),
       ]);
 

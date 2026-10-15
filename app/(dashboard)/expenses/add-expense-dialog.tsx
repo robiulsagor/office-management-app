@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 
 import ExpenseForm from "@/components/expenses/expense-form";
-import { useRouter } from "next/navigation";
 
 export default function AddExpenseDialog() {
   const [open, setOpen] = useState(false);
@@ -20,21 +20,37 @@ export default function AddExpenseDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="bg-black hover:bg-slate-800 text-white font-bold py-2 px-4 rounded cursor-pointer">
-          Add Expense
+      <DialogTrigger className="cursor-pointer rounded bg-black px-4 py-2 font-bold text-white hover:bg-slate-800">
+        Add Expense
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Add Expense</DialogTitle>
-
-          <DialogDescription>Add a new company expense.</DialogDescription>
+      <DialogContent
+        className="
+          w-[60vw]! max-w-275!
+          h-[80dvh]! max-h-[90dvh]! 
+          overflow-hidden
+          flex flex-col
+          gap-0
+          p-6
+        "
+      >
+        <DialogHeader className="shrink-0 pb-5">
+          <DialogTitle className="text-lg font-semibold">
+            Add Expense
+          </DialogTitle>
+          <DialogDescription>
+            Add a new company expense.
+          </DialogDescription>
         </DialogHeader>
 
-        <ExpenseForm onSuccess={() => {
-          setOpen(false);
-         router.refresh();
-        }} />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <ExpenseForm
+            onSuccess={() => {
+              setOpen(false);
+              router.refresh();
+            }}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

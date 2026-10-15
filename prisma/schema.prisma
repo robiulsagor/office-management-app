@@ -319,23 +319,41 @@ model ExpenseCategory {
   @@index([isActive])
 }
 
+model ExpenseEntry {
+  id       String    @id @default(cuid())
+  date     DateTime
+  expenses Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+
+
 model Expense {
-  id          String          @id @default(cuid())
-  date        DateTime
-  categoryId  String
-  category    ExpenseCategory @relation(fields: [categoryId], references: [id])
+  id String @id @default(cuid())
+
+  expenseEntryId String
+  expenseEntry   ExpenseEntry @relation(fields: [expenseEntryId], references: [id], onDelete: Restrict)
+
+  categoryId String
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+
   amount      Decimal
   description String?
 
   createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdBy   User @relation(fields: [createdById], references: [id])
 
-  @@index([date])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expenseEntryId])
   @@index([categoryId])
   @@index([createdById])
 }
+
 
 // Order Management
 
