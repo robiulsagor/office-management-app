@@ -30,7 +30,7 @@ export default async function ExpensesPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Expenses</h1>
 
@@ -39,7 +39,7 @@ export default async function ExpensesPage({
           </p>
         </div>
 
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center items-center flex-wrap gap-3">
           <MonthSelector month={month} basePath="/expenses" />
           <AddExpenseDialog />
         </div>

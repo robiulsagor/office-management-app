@@ -60,36 +60,47 @@ const Dashboard = async () => {
     }),
 
     prisma.expense.aggregate({
-      where: {
-        date: {
-          gte: startDate,
-          lt: endDate,
-        },
+  where: {
+    expenseEntry: {
+      date: {
+        gte: startDate,
+        lt: endDate,
       },
-      _sum: {
-        amount: true,
-      },
-    }),
+    },
+  },
+  _sum: {
+    amount: true,
+  },
+}),
 
     prisma.expense.findMany({
-      where: {
-        date: {
-          gte: startDate,
-          lt: endDate,
-        },
+  where: {
+    expenseEntry: {
+      date: {
+        gte: startDate,
+        lt: endDate,
       },
-      orderBy: {
-        date: "desc",
+    },
+  },
+  orderBy: {
+    expenseEntry: {
+      date: "desc",
+    },
+  },
+  take: 5,
+  include: {
+    expenseEntry: {
+      select: {
+        date: true,
       },
-      take: 5,
-      include: {
-        category: {
-          select: {
-            name: true,
-          },
-        },
+    },
+    category: {
+      select: {
+        name: true,
       },
-    }),
+    },
+  },
+}),
 
     prisma.bazarEntry.findMany({
       where: {
@@ -297,7 +308,7 @@ const Dashboard = async () => {
                     </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDate(expense.date)}
+                     {formatDate(expense.expenseEntry.date)}
                     </p>
                   </div>
 

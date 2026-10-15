@@ -20,7 +20,7 @@ export default function AddExpenseDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="cursor-pointer rounded bg-black px-4 py-2 font-bold text-white hover:bg-slate-800">
+      <DialogTrigger className="cursor-pointer rounded bg-black px-2 py-1 font-bold text-white hover:bg-slate-800 text-sm pl-2 md:pl-0">
         Add Expense
       </DialogTrigger>
 
