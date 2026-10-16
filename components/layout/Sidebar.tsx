@@ -5,6 +5,7 @@ import {
   Banknote,
   BanknoteArrowDown,
   Bus,
+  ChartNoAxesCombined,
   Grid2X2,
   ListOrdered,
   LogOut,
@@ -79,6 +80,13 @@ const menuItems: MenuTypes[] = [
   },
   {
     id: 8,
+    path: "/report",
+    label: "Report",
+    icon: ChartNoAxesCombined,
+    roles: ["super_admin", "admin", "accounts", "employee"],
+  },
+  {
+    id: 9,
     path: "/conveyance",
     label: "Conveyance",
     icon: Bus,
@@ -92,7 +100,7 @@ const menuItems: MenuTypes[] = [
   //   roles: ["super_admin", "admin", "accounts"],
   // },
   {
-    id: 9,
+    id: 10,
     path: "/user-management",
     label: "User Management",
     icon: UserCheck,
