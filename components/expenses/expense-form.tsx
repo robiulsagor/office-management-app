@@ -199,12 +199,13 @@ export default function ExpenseForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 ">
+    <form onSubmit={handleSubmit} className="space-y-4 ">
       <div className="space-y-2">
         <label htmlFor="expense-date" className="text-sm font-medium">
           Expense Date
         </label>
         <Input
+          className="text-sm"
           id="expense-date"
           type="date"
           value={date}
@@ -231,7 +232,7 @@ export default function ExpenseForm({
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 ">
+          <div className="grid grid-cols-1 gap-2 lg:gap-4 sm:grid-cols-2 lg:grid-cols-5 ">
             <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
               <Select
@@ -261,7 +262,7 @@ export default function ExpenseForm({
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-sm">
               <label
                 htmlFor={`expense-amount-${item.rowId}`}
                 className="text-sm font-medium"
@@ -269,6 +270,7 @@ export default function ExpenseForm({
                 Amount
               </label>
               <Input
+                className="text-sm"
                 id={`expense-amount-${item.rowId}`}
                 type="number"
                 min="0"
@@ -281,26 +283,27 @@ export default function ExpenseForm({
                 disabled={isSubmitting}
               />
             </div>
-         
-          <div className="space-y-2 lg:col-span-3">
-            <label
-              htmlFor={`expense-description-${item.rowId}`}
-              className="text-sm font-medium"
-            >
-              Description
-            </label>
-            <Textarea
-              id={`expense-description-${item.rowId}`}
-              placeholder="Optional description"
-              value={item.description}
-              onChange={(event) =>
-                updateItem(item.rowId, "description", event.target.value)
-              }
-              disabled={isSubmitting}
-              rows={2}
-            />
+
+            <div className="space-y-2 lg:col-span-3 text-sm">
+              <label
+                htmlFor={`expense-description-${item.rowId}`}
+                className="text-sm font-medium"
+              >
+                Description
+              </label>
+              <Textarea
+                className="text-sm"
+                id={`expense-description-${item.rowId}`}
+                placeholder="Optional description"
+                value={item.description}
+                onChange={(event) =>
+                  updateItem(item.rowId, "description", event.target.value)
+                }
+                disabled={isSubmitting}
+                rows={2}
+              />
+            </div>
           </div>
-           </div>
         </div>
       ))}
 
@@ -321,8 +324,11 @@ export default function ExpenseForm({
         </div>
       )}
 
-      <Button type="submit" disabled={isSubmitting || isLoadingCategories}
-      className="ms-2">
+      <Button
+        type="submit"
+        disabled={isSubmitting || isLoadingCategories}
+        className="ms-2"
+      >
         {isSubmitting
           ? "Saving..."
           : mode === "edit"

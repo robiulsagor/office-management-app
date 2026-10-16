@@ -26,8 +26,8 @@ export default function AddExpenseDialog() {
 
       <DialogContent
         className="
-          w-[60vw]! max-w-275!
-          h-[80dvh]! max-h-[90dvh]! 
+         w-[95vw] md:w-[60vw]! max-w-275!
+          h-[90dvh] md:h-[80dvh]! max-h-[90dvh]! 
           overflow-hidden
           flex flex-col
           gap-0
